@@ -4,10 +4,11 @@ import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction
 
 let currentMonth = new Date().toISOString().slice(0, 7);
 let transactions = [];
+let eventsInitialized = false; // ✅ Flag per evitare duplicazioni
 
 // Inizializzazione
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("App avviata - Mese corrente:", currentMonth);
+  console.log(" App avviata - Mese corrente:", currentMonth);
   
   populateCategories();
   updateMonthLabel();
@@ -16,15 +17,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   showLoading(true);
   try {
     transactions = await loadTransactions();
-    console.log("Movimenti caricati:", transactions.length);
-    console.log("Primo movimento:", transactions[0]);
+    console.log("✅ Movimenti caricati:", transactions.length);
   } catch (err) {
-    console.error("Errore caricamento:", err);
+    console.error("❌ Errore caricamento:", err);
   }
   showLoading(false);
   
   render();
-  setupEvents();
+  
+  // ✅ Inizializza eventi SOLO UNA VOLTA
+  if (!eventsInitialized) {
+    setupEvents();
+    eventsInitialized = true;
+  }
 });
 
 function populateCategories() {
@@ -32,7 +37,7 @@ function populateCategories() {
   const catSelect = document.getElementById("fCat");
   
   if (!tipoSelect || !catSelect) {
-    console.error("Elementi form non trovati");
+    console.error("❌ Elementi form non trovati");
     return;
   }
   
@@ -42,8 +47,6 @@ function populateCategories() {
   const categorie = tipo === "entrata" 
     ? [...CATEGORIES.entrata.ricorrenti, ...CATEGORIES.entrata.una_tantum]
     : [...CATEGORIES.uscita.ricorrenti, ...CATEGORIES.uscita.una_tantum];
-  
-  console.log("Categorie per", tipo, ":", categorie);
   
   categorie.forEach(cat => {
     const option = document.createElement("option");
@@ -64,6 +67,8 @@ function showLoading(state) {
 }
 
 function setupEvents() {
+  console.log("🔧 Setup eventi...");
+  
   // Cambio tipo → aggiorna categorie
   const tipoSelect = document.getElementById("fTipo");
   if (tipoSelect) {
@@ -90,31 +95,36 @@ function setupEvents() {
       
       const t = createTransaction(currentMonth, tipo, cat, membro, importo, ricorrente, reale);
       
-      console.log("Salvataggio movimento:", t);
-      
       try {
         await saveTransaction(t);
         transactions.push(t);
         render();
         form.reset();
         populateCategories();
-        alert("Movimento aggiunto!");
+        alert("✅ Movimento aggiunto!");
       } catch (err) {
-        console.error("Errore salvataggio:", err);
+        console.error("❌ Errore salvataggio:", err);
         alert("Errore nel salvataggio");
       }
     });
   }
   
-  // Navigazione mesi
+  // ✅ Navigazione mesi - CORRETTA
   const prevBtn = document.getElementById("prevMonth");
   const nextBtn = document.getElementById("nextMonth");
   
   if (prevBtn) {
-    prevBtn.addEventListener("click", () => shiftMonth(-1));
+    prevBtn.addEventListener("click", () => {
+      console.log("⬅️ Mese precedente");
+      shiftMonth(-1);
+    });
   }
+  
   if (nextBtn) {
-    nextBtn.addEventListener("click", () => shiftMonth(1));
+    nextBtn.addEventListener("click", () => {
+      console.log("➡️ Mese successivo");
+      shiftMonth(1);
+    });
   }
   
   // Export CSV
@@ -124,22 +134,24 @@ function setupEvents() {
       exportCSV(transactions);
     });
   }
+  
+  console.log("✅ Eventi configurati");
 }
 
 function shiftMonth(delta) {
+  console.log("📅 Spostamento di", delta, "mese/i da", currentMonth);
+  
   const [year, month] = currentMonth.split("-").map(Number);
   const newDate = new Date(year, month - 1 + delta, 1);
   currentMonth = newDate.toISOString().slice(0, 7);
+  
+  console.log("📅 Nuovo mese:", currentMonth);
   updateMonthLabel();
   render();
 }
 
 function render() {
-  console.log("Render per mese:", currentMonth);
-  console.log("Totale transazioni:", transactions.length);
-  
   const monthTrans = transactions.filter(t => t.mese === currentMonth);
-  console.log("Transazioni del mese:", monthTrans.length);
   
   const cassa = calcolaCassaReale(monthTrans);
   const conguaglio = calcolaConguagli(monthTrans);
