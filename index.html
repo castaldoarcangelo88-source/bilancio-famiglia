@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contabilità Familiare</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Caricamento Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header>
+    <h1>🏠 Contabilità Familiare</h1>
+    <div class="month-selector">
+      <button id="prevMonth">◀</button>
+      <span id="currentMonth">Caricamento...</span>
+      <button id="nextMonth">▶</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="dashboard" id="dashboard">
+      <div class="card kpi"><h3>CASSA REALE</h3><p id="kpiCassa">€ 0,00</p></div>
+      <div class="card kpi"><h3>CONGUAGLIO NETTO</h3><p id="kpiConguaglio">€ 0,00</p></div>
+      <div class="card kpi"><h3>UTILE RIPARTIBILE</h3><p id="kpiUtile">€ 0,00</p></div>
+      <div class="card kpi"><h3>QUOTA PER SOCIO</h3><p id="kpiQuota">€ 0,00</p></div>
+    </section>
+
+    <section class="input-panel">
+      <h2>➕ Nuovo Movimento</h2>
+      <form id="transForm">
+        <select id="fTipo" required><option value="entrata">Entrata</option><option value="uscita">Uscita</option></select>
+        <select id="fCat" required><option value="">Seleziona categoria</option></select>
+        <select id="fMembro" required><option value="Capo">Capo</option><option value="Moglie">Moglie</option></select>
+        <input type="number" id="fImporto" step="0.01" placeholder="Importo" required>
+        <label><input type="checkbox" id="fRicorrente"> Ricorrente</label>
+        <label><input type="checkbox" id="fReale" checked> Reale</label>
+        <button type="submit">Aggiungi</button>
+      </form>
+    </section>
+
+    <section class="table-panel">
+      <h2>📊 Movimenti Mese</h2>
+      <table id="transTable">
+        <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Membro</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="rollover-panel">
+      <h2>🔄 Conguagli & Ripartizione</h2>
+      <ul id="rolloverList"></ul>
+      <button id="btnExport">📥 Esporta CSV</button>
+    </section>
+  </main>
+
+  <!-- ✅ Caricamento Modulo Assoluto -->
+  <script type="module" src="./modules/ui.js"></script>
+</body>
+</html>
