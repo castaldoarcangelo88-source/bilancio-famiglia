@@ -4,7 +4,7 @@ import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction
 
 let currentMonth = new Date().toISOString().slice(0, 7);
 let transactions = [];
-let eventsInitialized = false; // ✅ Flag per evitare duplicazioni
+let eventsInitialized = false;
 
 // Inizializzazione
 document.addEventListener("DOMContentLoaded", async () => {
@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   populateCategories();
   updateMonthLabel();
   
-  // Carica dati da Supabase
   showLoading(true);
   try {
     transactions = await loadTransactions();
@@ -25,7 +24,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   render();
   
-  // ✅ Inizializza eventi SOLO UNA VOLTA
   if (!eventsInitialized) {
     setupEvents();
     eventsInitialized = true;
@@ -69,13 +67,11 @@ function showLoading(state) {
 function setupEvents() {
   console.log("🔧 Setup eventi...");
   
-  // Cambio tipo → aggiorna categorie
   const tipoSelect = document.getElementById("fTipo");
   if (tipoSelect) {
     tipoSelect.addEventListener("change", populateCategories);
   }
   
-  // Submit form
   const form = document.getElementById("transForm");
   if (form) {
     form.addEventListener("submit", async (e) => {
@@ -94,42 +90,40 @@ function setupEvents() {
       }
       
       const t = createTransaction(currentMonth, tipo, cat, membro, importo, ricorrente, reale);
-
-try {
-  const saved = await saveTransaction(t);
-  if (saved) {
-    transactions.push(saved); // ✅ Usa l'oggetto con ID generato da Supabase
-    render();
-    form.reset();
-    populateCategories();
-    alert("✅ Movimento aggiunto!");
-  }
-} catch (err) {
-  console.error("❌ Errore salvataggio:", err);
-  alert("Errore nel salvataggio: " + err.message);
-}
+      
+      try {
+        const saved = await saveTransaction(t);
+        if (saved) {
+          transactions.push(saved);
+          render();
+          form.reset();
+          populateCategories();
+          alert("✅ Movimento aggiunto!");
+        }
+      } catch (err) {
+        console.error("❌ Errore salvataggio:", err);
+        alert("Errore nel salvataggio: " + err.message);
+      }
     });
   }
   
-  // ✅ Navigazione mesi - CORRETTA
   const prevBtn = document.getElementById("prevMonth");
   const nextBtn = document.getElementById("nextMonth");
   
   if (prevBtn) {
     prevBtn.addEventListener("click", () => {
-      console.log("⬅️ Mese precedente");
+      console.log("◀️ Mese precedente");
       shiftMonth(-1);
     });
   }
   
   if (nextBtn) {
     nextBtn.addEventListener("click", () => {
-      console.log("➡️ Mese successivo");
+      console.log("▶️ Mese successivo");
       shiftMonth(1);
     });
   }
   
-  // Export CSV
   const exportBtn = document.getElementById("btnExport");
   if (exportBtn) {
     exportBtn.addEventListener("click", () => {
@@ -141,13 +135,27 @@ try {
 }
 
 function shiftMonth(delta) {
-  console.log("📅 Spostamento di", delta, "mese/i da", currentMonth);
+  console.log("📅 Spostamento di", delta, "da", currentMonth);
   
-  const [year, month] = currentMonth.split("-").map(Number);
-  const newDate = new Date(year, month - 1 + delta, 1);
-  currentMonth = newDate.toISOString().slice(0, 7);
+  const parts = currentMonth.split("-");
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10);
   
-  console.log("📅 Nuovo mese:", currentMonth);
+  let newMonth = month + delta;
+  let newYear = year;
+  
+  while (newMonth > 12) {
+    newMonth -= 12;
+    newYear += 1;
+  }
+  while (newMonth < 1) {
+    newMonth += 12;
+    newYear -= 1;
+  }
+  
+  currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
+  
+  console.log("✅ Nuovo mese:", currentMonth);
   updateMonthLabel();
   render();
 }
@@ -159,7 +167,6 @@ function render() {
   const conguaglio = calcolaConguagli(monthTrans);
   const { utileRipartibile, quota } = ripartisciUtile(cassa, conguaglio);
 
-  // Aggiorna KPI
   const kpiCassa = document.getElementById("kpiCassa");
   const kpiConguaglio = document.getElementById("kpiConguaglio");
   const kpiUtile = document.getElementById("kpiUtile");
@@ -203,7 +210,6 @@ function renderTable(list) {
   });
 }
 
-// Funzioni globali per i bottoni
 window.toggleConf = async (id) => {
   const t = transactions.find(x => x.id === id);
   if (t) {
