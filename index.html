@@ -2,120 +2,91 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Contabilità Familiare</title>
-  
-  <!-- ✅ Favicon con emoji casa -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
-  
-  <!-- ✅ CSS -->
   <link rel="stylesheet" href="style.css">
-  
-  <!-- ✅ SDK Supabase (deve essere prima dei moduli) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
-    <h1>🏠 Contabilità Familiare</h1>
+    <div class="header-left">
+      <h1>🏠 Bilancio</h1>
+    </div>
     <div class="month-selector">
-      <button id="prevMonth" aria-label="Mese precedente">◀</button>
-      <span id="currentMonth">Caricamento...</span>
-      <button id="nextMonth" aria-label="Mese successivo">▶</button>
+      <button id="prevMonth">◀</button>
+      <span id="currentMonth">--</span>
+      <button id="nextMonth">▶</button>
     </div>
   </header>
 
+  <!-- Alert Container (Dinamico) -->
+  <div id="alert-box"></div>
+
   <main>
     <!-- KPI Dashboard -->
-    <section class="dashboard" id="dashboard">
+    <section class="dashboard">
       <div class="card kpi">
-        <h3>CASSA REALE</h3>
-        <p id="kpiCassa">€ 0,00</p>
+        <span>Cassa Reale</span>
+        <strong id="kpiCassa">€ 0,00</strong>
       </div>
       <div class="card kpi">
-        <h3>CONGUAGLIO NETTO</h3>
-        <p id="kpiConguaglio">€ 0,00</p>
+        <span>Conguaglio</span>
+        <strong id="kpiConguaglio">€ 0,00</strong>
       </div>
       <div class="card kpi">
-        <h3>UTILE RIPARTIBILE</h3>
-        <p id="kpiUtile">€ 0,00</p>
-      </div>
-      <div class="card kpi">
-        <h3>QUOTA PER SOCIO</h3>
-        <p id="kpiQuota">€ 0,00</p>
+        <span>Utile Net</span>
+        <strong id="kpiUtile">€ 0,00</strong>
       </div>
     </section>
 
-    <!-- Form Nuovo Movimento -->
+    <!-- Form Aggiunta Rapida -->
     <section class="input-panel">
-      <h2>➕ Nuovo Movimento</h2>
-      <form id="transForm">
-        <select id="fTipo" required aria-label="Tipo movimento">
-          <option value="entrata">Entrata</option>
-          <option value="uscita">Uscita</option>
-        </select>
-        <select id="fCat" required aria-label="Categoria">
-          <option value="">Seleziona categoria</option>
-        </select>
-        <select id="fMembro" required aria-label="Membro famiglia">
-          <option value="Capo">Capo</option>
-          <option value="Moglie">Moglie</option>
-        </select>
-        <input type="number" id="fImporto" step="0.01" placeholder="Importo €" required aria-label="Importo">
-        <label class="checkbox-label">
-          <input type="checkbox" id="fRicorrente"> Ricorrente
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" id="fReale" checked> Reale (incassato/pagato)
-        </label>
-        <button type="submit" class="btn-primary">Aggiungi</button>
-      </form>
-    </section>
-
-    <!-- Tabella Movimenti -->
-    <section class="table-panel">
-      <h2>📊 Movimenti del Mese</h2>
-      <div class="table-wrapper">
-        <table id="transTable">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Tipo</th>
-              <th>Categoria</th>
-              <th>Membro</th>
-              <th>Importo</th>
-              <th>Stato</th>
-              <th>Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="7" style="text-align:center;padding:20px;color:#999">Caricamento movimenti...</td></tr>
-          </tbody>
-        </table>
+      <div class="form-row">
+        <select id="fTipo"><option value="entrata">Entrata</option><option value="uscita">Uscita</option></select>
+        <select id="fCat"><option value="">Categoria...</option></select>
       </div>
+      <div class="form-row">
+        <select id="fMembro"><option value="Capo">Capo</option><option value="Moglie">Anna</option></select>
+        <input type="number" id="fImporto" placeholder="€ Importo">
+      </div>
+      <div class="form-options">
+        <label><input type="checkbox" id="fRicorrente">  Ricorrente</label>
+        <label><input type="checkbox" id="fReale" checked> ✅ Reale</label>
+      </div>
+      <button id="btnAggiungi" class="btn-primary"> Aggiungi Movimento</button>
     </section>
 
-    <!-- Conguagli & Ripartizione -->
+    <!-- Vista Desktop (Tabella) -->
+    <section class="table-panel desktop-only">
+      <h2>📊 Movimenti</h2>
+      <table id="transTable">
+        <thead>
+          <tr><th>Tipo</th><th>Categoria</th><th>Chi</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Vista Mobile (Lista Card) -->
+    <section class="mobile-only" id="mobile-list">
+      <h2>📊 Movimenti</h2>
+      <div id="mobile-container"></div>
+    </section>
+
+    <!-- Riepilogo -->
     <section class="rollover-panel">
-      <h2>🔄 Conguagli & Ripartizione</h2>
-      <ul id="rolloverList">
-        <li>Caricamento dati...</li>
-      </ul>
-      <div class="actions">
+      <h2> Riepilogo</h2>
+      <ul id="rolloverList"></ul>
+      <div class="actions-row">
         <button id="btnExport" class="btn-secondary">📥 Esporta CSV</button>
       </div>
     </section>
   </main>
 
-  <footer>
-    <p>💡 Dati sincronizzati via Supabase • Aggiornato: <span id="lastUpdate">-</span></p>
-  </footer>
+  <!-- Footer Spacer per Mobile -->
+  <div class="mobile-spacer"></div>
 
-  <!-- ✅ Modulo principale (caricato DOPO Supabase) -->
-  <script type="module" src="./modules/ui.js?v=2"></script>
-  
-  <!-- ✅ Script per timestamp ultimo aggiornamento -->
-  <script>
-    document.getElementById('lastUpdate').textContent = new Date().toLocaleString('it-IT');
-  </script>
+  <script type="module" src="./modules/ui.js?v=5"></script>
 </body>
 </html>
