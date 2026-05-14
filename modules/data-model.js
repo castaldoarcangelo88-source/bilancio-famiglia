@@ -34,8 +34,8 @@ export const CATEGORIES = {
   }
 };
 
-export const QUOTA_BASELINA = 600; // Prelievo mensile tollerato
-export const SOGLIA_ALLARME_CASSA = 500; // Alert se sotto questa cifra
+export const QUOTA_BASELINA = 600;
+export const SOGLIA_ALLARME_CASSA = 500;
 export const STORAGE_KEY = "famiglia_finance_v1";
 
 export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, reale) {
