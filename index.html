@@ -53,13 +53,58 @@
     </section>
 
     <!-- SEZIONE GRAFICI E IMPOSTAZIONI -->
+        <!-- SEZIONE GRAFICI -->
     <section class="charts-section">
-      <h2>📊 Report & Impostazioni</h2>
+      <h2>📊 Report</h2>
       <div class="chart-tabs">
-        <button class="tab-btn active" onclick="showTab('weekly')"> Settimanale</button>
-        <button class="tab-btn" onclick="showTab('monthly')">🗓️ Mensile</button>
+        <button class="tab-btn active" onclick="showTab('weekly')">Settimanale</button>
+        <button class="tab-btn" onclick="showTab('monthly')">Mensile</button>
         <button class="tab-btn" onclick="showTab('settings')">⚙️ Categorie</button>
       </div>
+      
+      <div id="weekly-tab" class="tab-content active">
+        <div class="chart-box"><canvas id="weeklyChart"></canvas></div>
+      </div>
+      
+      <div id="monthly-tab" class="tab-content">
+        <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+      </div>
+      
+      <div id="settings-tab" class="tab-content">
+        <h3>⚙️ Gestione Categorie</h3>
+        <div class="category-manager">
+          <input type="text" id="newCatName" placeholder="Nome (es. Palestra)">
+          <select id="newCatType"><option value="entrata">Entrata</option><option value="uscita">Uscita</option></select>
+          <button onclick="addNewCategory()" class="btn-small">+</button>
+        </div>
+        <div id="categoriesList" class="cat-list"></div>
+
+        <h3 style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;">🤖 Telegram</h3>
+        <p style="font-size:0.8rem; color:#666">ID: 75236001 | ⚠️ Ricorda di cliccare /start sul bot Telegram prima!</p>
+        <button onclick="testTelegram()" class="btn-secondary">Test Notifica</button>
+      </div>
+    </section>
+
+    <!-- ... (resto del codice HTML invariato) ... -->
+
+  <div class="mobile-spacer"></div>
+
+  <!-- Script Versionati -->
+  <script type="module" src="./modules/config.js?v=30"></script>
+  <script type="module" src="./modules/storage.js?v=30"></script>
+  <script type="module" src="./modules/db-manager.js?v=30"></script>
+  <script type="module" src="./modules/ui.js?v=30"></script>
+  
+  <script>
+    window.showTab = (t) => {
+      document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+      document.getElementById(t+'-tab').classList.add('active');
+      document.querySelectorAll('.tab-btn')[['weekly','monthly','settings'].indexOf(t)].classList.add('active');
+    };
+  </script>
+</body>
+</html>
       
       <!-- Tab Settimanale -->
       <div id="weekly-tab" class="tab-content active">
