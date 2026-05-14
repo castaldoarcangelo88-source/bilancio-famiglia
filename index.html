@@ -4,57 +4,118 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contabilità Familiare</title>
+  
+  <!-- ✅ Favicon con emoji casa -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+  
+  <!-- ✅ CSS -->
   <link rel="stylesheet" href="style.css">
-  <!-- Caricamento Supabase -->
+  
+  <!-- ✅ SDK Supabase (deve essere prima dei moduli) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
     <h1>🏠 Contabilità Familiare</h1>
     <div class="month-selector">
-      <button id="prevMonth">◀</button>
+      <button id="prevMonth" aria-label="Mese precedente">◀</button>
       <span id="currentMonth">Caricamento...</span>
-      <button id="nextMonth">▶</button>
+      <button id="nextMonth" aria-label="Mese successivo">▶</button>
     </div>
   </header>
 
   <main>
+    <!-- KPI Dashboard -->
     <section class="dashboard" id="dashboard">
-      <div class="card kpi"><h3>CASSA REALE</h3><p id="kpiCassa">€ 0,00</p></div>
-      <div class="card kpi"><h3>CONGUAGLIO NETTO</h3><p id="kpiConguaglio">€ 0,00</p></div>
-      <div class="card kpi"><h3>UTILE RIPARTIBILE</h3><p id="kpiUtile">€ 0,00</p></div>
-      <div class="card kpi"><h3>QUOTA PER SOCIO</h3><p id="kpiQuota">€ 0,00</p></div>
+      <div class="card kpi">
+        <h3>CASSA REALE</h3>
+        <p id="kpiCassa">€ 0,00</p>
+      </div>
+      <div class="card kpi">
+        <h3>CONGUAGLIO NETTO</h3>
+        <p id="kpiConguaglio">€ 0,00</p>
+      </div>
+      <div class="card kpi">
+        <h3>UTILE RIPARTIBILE</h3>
+        <p id="kpiUtile">€ 0,00</p>
+      </div>
+      <div class="card kpi">
+        <h3>QUOTA PER SOCIO</h3>
+        <p id="kpiQuota">€ 0,00</p>
+      </div>
     </section>
 
+    <!-- Form Nuovo Movimento -->
     <section class="input-panel">
       <h2>➕ Nuovo Movimento</h2>
       <form id="transForm">
-        <select id="fTipo" required><option value="entrata">Entrata</option><option value="uscita">Uscita</option></select>
-        <select id="fCat" required><option value="">Seleziona categoria</option></select>
-        <select id="fMembro" required><option value="Capo">Capo</option><option value="Moglie">Moglie</option></select>
-        <input type="number" id="fImporto" step="0.01" placeholder="Importo" required>
-        <label><input type="checkbox" id="fRicorrente"> Ricorrente</label>
-        <label><input type="checkbox" id="fReale" checked> Reale</label>
-        <button type="submit">Aggiungi</button>
+        <select id="fTipo" required aria-label="Tipo movimento">
+          <option value="entrata">Entrata</option>
+          <option value="uscita">Uscita</option>
+        </select>
+        <select id="fCat" required aria-label="Categoria">
+          <option value="">Seleziona categoria</option>
+        </select>
+        <select id="fMembro" required aria-label="Membro famiglia">
+          <option value="Capo">Capo</option>
+          <option value="Moglie">Moglie</option>
+        </select>
+        <input type="number" id="fImporto" step="0.01" placeholder="Importo €" required aria-label="Importo">
+        <label class="checkbox-label">
+          <input type="checkbox" id="fRicorrente"> Ricorrente
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="fReale" checked> Reale (incassato/pagato)
+        </label>
+        <button type="submit" class="btn-primary">Aggiungi</button>
       </form>
     </section>
 
+    <!-- Tabella Movimenti -->
     <section class="table-panel">
-      <h2>📊 Movimenti Mese</h2>
-      <table id="transTable">
-        <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Membro</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <h2>📊 Movimenti del Mese</h2>
+      <div class="table-wrapper">
+        <table id="transTable">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Categoria</th>
+              <th>Membro</th>
+              <th>Importo</th>
+              <th>Stato</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" style="text-align:center;padding:20px;color:#999">Caricamento movimenti...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
+    <!-- Conguagli & Ripartizione -->
     <section class="rollover-panel">
       <h2>🔄 Conguagli & Ripartizione</h2>
-      <ul id="rolloverList"></ul>
-      <button id="btnExport">📥 Esporta CSV</button>
+      <ul id="rolloverList">
+        <li>Caricamento dati...</li>
+      </ul>
+      <div class="actions">
+        <button id="btnExport" class="btn-secondary">📥 Esporta CSV</button>
+      </div>
     </section>
   </main>
 
-  <!-- ✅ Caricamento Modulo Assoluto -->
+  <footer>
+    <p>💡 Dati sincronizzati via Supabase • Aggiornato: <span id="lastUpdate">-</span></p>
+  </footer>
+
+  <!-- ✅ Modulo principale (caricato DOPO Supabase) -->
   <script type="module" src="./modules/ui.js"></script>
+  
+  <!-- ✅ Script per timestamp ultimo aggiornamento -->
+  <script>
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleString('it-IT');
+  </script>
 </body>
 </html>
