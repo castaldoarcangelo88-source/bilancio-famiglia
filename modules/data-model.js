@@ -14,18 +14,17 @@ export const CATEGORIES = {
 export const QUOTA_BASELINA = 600;
 export const STORAGE_KEY = "famiglia_finance_v1";
 
+// ✅ NON generare ID qui - lascia fare a Supabase
 export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, reale) {
   return {
-    // ❌ RIMOSSO: id generato manualmente (non è UUID valido)
-    // ✅ Supabase genererà automaticamente l'UUID grazie a DEFAULT gen_random_uuid()
     mese, 
     tipo, 
     cat, 
     membro, 
     importo: parseFloat(importo),
-    ricorrente, 
-    reale, 
-    confermato: reale,
+    ricorrente: ricorrente || false, 
+    reale: reale || false, 
+    confermato: reale || false,
     created_at: new Date().toISOString()
   };
 }
