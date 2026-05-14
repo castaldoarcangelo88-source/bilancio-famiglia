@@ -1,6 +1,6 @@
 import { STORAGE_KEY } from "./data-model.js";
 
-// 🔑 CREDENZIALI SUPABASE INSERITE
+// 🔑 CREDENZIALI SUPABASE
 const SUPABASE_URL = "https://igmmekejpqbbctjupsqa.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnbW1la2VqcHFiYmN0anVwc3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ4MjgsImV4cCI6MjA5NDI2MDgyOH0.TYFey7KCDrWSikDEsDDIba7E65sD0EhS1CF-tsKRGJs";
 
@@ -13,40 +13,46 @@ export async function loadTransactions() {
     .order("created_at", { ascending: false });
   
   if (error) { 
-    console.error("Errore fetch:", error); 
+    console.error("❌ Errore fetch:", error); 
     return []; 
   }
-  return data;
+  return data || [];
 }
 
 export async function saveTransaction(t) {
-  // ✅ Rimuovi l'id dall'oggetto prima di inserire
+  // ✅ NON inviare id - Supabase lo genera automaticamente
   const { id, created_at, ...dataToInsert } = t;
   
   const { data, error } = await supabase
     .from("transactions")
     .insert([dataToInsert])
-    .select(); // ✅ Seleziona i dati inseriti per ottenere l'ID generato
+    .select(); // Ottieni i dati inseriti con ID generato
   
   if (error) {
     console.error("❌ Errore insert:", error);
     throw error;
   }
   
-  // ✅ Restituisci il movimento con l'ID corretto generato da Supabase
   return data ? data[0] : null;
 }
+
 export async function updateTransaction(id, updates) {
   const { error } = await supabase
     .from("transactions")
     .update(updates)
     .eq("id", id);
-  if (error) console.error("Errore update:", error);
+  if (error) {
+    console.error("❌ Errore update:", error);
+    throw error;
+  }
 }
 
 export async function deleteTransaction(id) {
   const { error } = await supabase.from("transactions").delete().eq("id", id);
-  if (error) console.error("Errore delete:", error);
+  if (error) {
+    console.error("❌ Errore delete:", error);
+    throw error;
+  }
 }
 
 export function exportCSV(trans) {
