@@ -2,26 +2,21 @@ import { MEMBERS, CATEGORIES, createTransaction, QUOTA_BASELINA } from "./data-m
 import { calcolaCassaReale, calcolaConguagli, ripartisciUtile } from "./logic.js";
 import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV } from "./storage.js";
 
-// ✅ Variabile locale per il mese corrente (NON window)
+// Stato globale
 let currentMonth = new Date().toISOString().slice(0, 7);
 let transactions = [];
 let eventsInitialized = false;
 
-// Inizializzazione
+// Avvio
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("🏠 App avviata - Mese corrente:", currentMonth);
-  
   populateCategories();
   updateMonthLabel();
   
-  showLoading(true);
-  try {
-    transactions = await loadTransactions();
-    console.log("✅ Movimenti caricati:", transactions.length);
-  } catch (err) {
-    console.error("❌ Errore caricamento:", err);
-  }
-  showLoading(false);
+  // Caricamento dati
+  transactions = await loadTransactions();
+  
+  // ✅ AUTOMATIZZAZIONE: Clona ricorrenze al cambio mese
+  await gestisciRicorrenze();
   
   render();
   
@@ -31,232 +26,165 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-function populateCategories() {
-  const tipoSelect = document.getElementById("fTipo");
-  const catSelect = document.getElementById("fCat");
+// Logica Ricorrenze
+async function gestisciRicorrenze() {
+  // Trova transazioni ricorrenti del mese scorso
+  const [y, m] = currentMonth.split("-").map(Number);
+  const prevDate = new Date(y, m - 2, 1); // Mese precedente
+  const prevMonthStr = prevDate.toISOString().slice(0, 7);
   
-  if (!tipoSelect || !catSelect) {
-    console.error("❌ Elementi form non trovati");
-    return;
-  }
+  const ricorrenti = transactions.filter(t => t.ricorrente && t.mese === prevMonthStr);
   
-  const tipo = tipoSelect.value;
-  catSelect.innerHTML = '<option value="">Seleziona categoria</option>';
-  
-  const categorie = tipo === "entrata" 
-    ? [...CATEGORIES.entrata.ricorrenti, ...CATEGORIES.entrata.una_tantum]
-    : [...CATEGORIES.uscita.ricorrenti, ...CATEGORIES.uscita.una_tantum];
-  
-  categorie.forEach(cat => {
-    const option = document.createElement("option");
-    option.value = cat;
-    option.textContent = cat;
-    catSelect.appendChild(option);
-  });
-}
-
-function updateMonthLabel() {
-  const el = document.getElementById("currentMonth");
-  if (el) {
-    el.textContent = currentMonth;
-    console.log("📅 Etichetta mese aggiornata a:", currentMonth);
+  for (const t of ricorrenti) {
+    // Evita duplicati
+    const exists = transactions.some(x => x.mese === currentMonth && x.cat === t.cat && x.membro === t.membro && x.importo === t.importo);
+    if (!exists) {
+      const newT = { ...t, mese: currentMonth, confermato: false, reale: false, created_at: new Date().toISOString() };
+      await saveTransaction(newT);
+      transactions.push(newT);
+    }
   }
 }
 
-function showLoading(state) {
-  document.body.style.opacity = state ? "0.5" : "1";
-  document.body.style.pointerEvents = state ? "none" : "auto";
-}
-
+// Eventi
 function setupEvents() {
-  console.log("🔧 Setup eventi...");
+  document.getElementById("fTipo").addEventListener("change", populateCategories);
   
-  const tipoSelect = document.getElementById("fTipo");
-  if (tipoSelect) {
-    tipoSelect.addEventListener("change", populateCategories);
-  }
-  
-  const form = document.getElementById("transForm");
-  if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      
-      const tipo = document.getElementById("fTipo").value;
-      const cat = document.getElementById("fCat").value;
-      const membro = document.getElementById("fMembro").value;
-      const importo = parseFloat(document.getElementById("fImporto").value);
-      const ricorrente = document.getElementById("fRicorrente").checked;
-      const reale = document.getElementById("fReale").checked;
-      
-      if (!cat) {
-        alert("Seleziona una categoria!");
-        return;
-      }
-      
-      const t = createTransaction(currentMonth, tipo, cat, membro, importo, ricorrente, reale);
-      
-      try {
-        const saved = await saveTransaction(t);
-        if (saved) {
-          transactions.push(saved);
-          render();
-          form.reset();
-          populateCategories();
-          alert("✅ Movimento aggiunto!");
-        }
-      } catch (err) {
-        console.error("❌ Errore salvataggio:", err);
-        alert("Errore nel salvataggio: " + err.message);
-      }
-    });
-  }
-  
-  const prevBtn = document.getElementById("prevMonth");
-  const nextBtn = document.getElementById("nextMonth");
-  
-  if (prevBtn) {
-    prevBtn.onclick = function() {
-      console.log("◀️ Click mese precedente");
-      shiftMonth(-1);
-    };
-  }
-  
-  if (nextBtn) {
-    nextBtn.onclick = function() {
-      console.log("▶️ Click mese successivo");
-      shiftMonth(1);
-    };
-  }
-  
-  const exportBtn = document.getElementById("btnExport");
-  if (exportBtn) {
-    exportBtn.addEventListener("click", () => {
-      exportCSV(transactions);
-    });
-  }
-  
-  console.log("✅ Eventi configurati");
+  document.getElementById("btnAggiungi").addEventListener("click", async () => {
+    const tipo = document.getElementById("fTipo").value;
+    const cat = document.getElementById("fCat").value;
+    const membro = document.getElementById("fMembro").value;
+    const importo = parseFloat(document.getElementById("fImporto").value);
+    const ricorrente = document.getElementById("fRicorrente").checked;
+    const reale = document.getElementById("fReale").checked;
+    
+    if (!cat || !importo) { alert("Compila tutti i campi!"); return; }
+    
+    const t = createTransaction(currentMonth, tipo, cat, membro, importo, ricorrente, reale);
+    const saved = await saveTransaction(t);
+    if (saved) {
+      transactions.push(saved);
+      render();
+      document.getElementById("fImporto").value = ""; // Reset solo importo
+    }
+  });
+
+  document.getElementById("prevMonth").onclick = () => { shiftMonth(-1); gestisciRicorrenze(); };
+  document.getElementById("nextMonth").onclick = () => { shiftMonth(1); gestisciRicorrenze(); };
+  document.getElementById("btnExport").onclick = () => exportCSV(transactions);
 }
 
+// Navigazione Mese
 function shiftMonth(delta) {
-  console.log("📅 shiftMonth chiamata con delta:", delta);
-  console.log("📅 Mese attuale PRIMA:", currentMonth);
-  
-  // Split anno e mese
-  const parts = currentMonth.split("-");
-  console.log("📅 Parts:", parts);
-  
-  const year = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10);
-  
-  console.log("📅 Year:", year, "Month:", month);
-  
-  let newMonth = month + delta;
-  let newYear = year;
-  
-  console.log("📅 NewMonth prima normalizzazione:", newMonth);
-  
-  // Gestione overflow/underflow mesi
-  while (newMonth > 12) {
-    newMonth -= 12;
-    newYear += 1;
-  }
-  while (newMonth < 1) {
-    newMonth += 12;
-    newYear -= 1;
-  }
-  
-  console.log("📅 NewMonth dopo normalizzazione:", newMonth, "NewYear:", newYear);
-  
-  // Formatta nuovo mese (YYYY-MM)
-  const monthStr = String(newMonth).padStart(2, '0');
-  currentMonth = `${newYear}-${monthStr}`;
-  
-  console.log("✅ Mese aggiornato a:", currentMonth);
-  
+  const [year, month] = currentMonth.split("-").map(Number);
+  const d = new Date(year, month - 1 + delta, 1);
+  currentMonth = d.toISOString().slice(0, 7);
   updateMonthLabel();
   render();
 }
 
+// Renderizzazione Principale
 function render() {
-  console.log(" Render per mese:", currentMonth);
-  
   const monthTrans = transactions.filter(t => t.mese === currentMonth);
-  
   const cassa = calcolaCassaReale(monthTrans);
   const conguaglio = calcolaConguagli(monthTrans);
   const { utileRipartibile, quota } = ripartisciUtile(cassa, conguaglio);
 
-  const kpiCassa = document.getElementById("kpiCassa");
-  const kpiConguaglio = document.getElementById("kpiConguaglio");
-  const kpiUtile = document.getElementById("kpiUtile");
-  const kpiQuota = document.getElementById("kpiQuota");
-  
-  if (kpiCassa) kpiCassa.textContent = `€ ${cassa.toFixed(2)}`;
-  if (kpiConguaglio) kpiConguaglio.textContent = `€ ${conguaglio.toFixed(2)}`;
-  if (kpiUtile) kpiUtile.textContent = `€ ${utileRipartibile.toFixed(2)}`;
-  if (kpiQuota) kpiQuota.textContent = `€ ${quota.toFixed(2)}`;
+  // Update DOM
+  document.getElementById("kpiCassa").textContent = fmt(cassa);
+  document.getElementById("kpiConguaglio").textContent = fmt(conguaglio);
+  document.getElementById("kpiUtile").textContent = fmt(utileRipartibile);
 
   renderTable(monthTrans);
+  renderMobileList(monthTrans);
   renderRollover(conguaglio, cassa, utileRipartibile);
+  checkAlerts(cassa);
 }
 
+// Vista Desktop
 function renderTable(list) {
   const tbody = document.querySelector("#transTable tbody");
-  if (!tbody) return;
-  
-  tbody.innerHTML = "";
-  
-  if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999">Nessun movimento per questo mese</td></tr>';
-    return;
-  }
-  
-  list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).forEach(t => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${t.mese}</td>
-      <td style="color:${t.tipo === 'entrata' ? 'green' : 'red'};font-weight:bold">${t.tipo.toUpperCase()}</td>
-      <td>${t.cat}</td>
-      <td>${t.membro}</td>
-      <td>€ ${t.importo.toFixed(2)}</td>
-      <td><span class="badge ${t.confermato ? 'real' : 'atteso'}">${t.confermato ? 'Reale' : 'Atteso'}</span>${t.ricorrente ? ' 🔄' : ''}</td>
+  if(!tbody) return;
+  tbody.innerHTML = list.map(t => `
+    <tr style="color:${t.tipo==='entrata'?'green':'red'}">
+      <td>${t.tipo.toUpperCase()}</td><td>${t.cat}</td><td>${t.membro}</td>
+      <td>€${t.importo}</td>
+      <td><span class="badge ${t.confermato?'real':'atteso'}">${t.confermato?'Reale':'Atteso'}</span></td>
       <td>
-        <button class="btn-sm" onclick="window.toggleConf('${t.id}')">${t.confermato ? 'Annulla' : 'Conferma'}</button>
-        <button class="btn-sm" style="color:red" onclick="window.deleteTrans('${t.id}')">🗑</button>
+        <button class="btn-sm" onclick="toggle('${t.id}')">${t.confermato?'Annulla':'Conferma'}</button>
+        <button class="btn-sm" style="color:red" onclick="del('${t.id}')">🗑</button>
       </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    </tr>
+  `).join("");
 }
 
-window.toggleConf = async (id) => {
+// Vista Mobile (Card)
+function renderMobileList(list) {
+  const container = document.getElementById("mobile-container");
+  if(!container) return;
+  container.innerHTML = list.map(t => `
+    <div class="m-card ${t.tipo}">
+      <div class="m-info">
+        <h4>${t.cat} <small>(${t.membro})</small></h4>
+        <p>${t.confermato ? '✅ Reale' : '⏳ Atteso'} ${t.ricorrente ? '🔄' : ''}</p>
+        <div class="m-actions">
+          <button class="m-btn conf" onclick="toggle('${t.id}')">${t.confermato ? 'Annulla' : 'Conferma'}</button>
+          <button class="m-btn del" onclick="del('${t.id}')">Elimina</button>
+        </div>
+      </div>
+      <div class="m-amount" style="color:${t.tipo==='entrata'?'var(--success)':'var(--danger)'}">
+        ${t.tipo==='entrata'?'+':'-'}€${t.importo}
+      </div>
+    </div>
+  `).join("");
+}
+
+// Alert Cassa
+function checkAlerts(cassa) {
+  const box = document.getElementById("alert-box");
+  if (cassa < 0) {
+    box.style.display = "block";
+    box.textContent = `⚠️ ATTENZIONE: Cassa negativa di €${Math.abs(cassa).toFixed(2)}`;
+  } else {
+    box.style.display = "none";
+  }
+}
+
+// Funzioni Globali
+window.toggle = async (id) => {
   const t = transactions.find(x => x.id === id);
   if (t) {
-    t.confermato = !t.confermato;
-    t.reale = t.confermato;
+    t.confermato = !t.confermato; t.reale = t.confermato;
     await updateTransaction(id, { confermato: t.confermato, reale: t.reale });
     render();
   }
 };
 
-window.deleteTrans = async (id) => {
-  if (!confirm("Eliminare questo movimento?")) return;
-  
-  transactions = transactions.filter(x => x.id !== id);
-  await deleteTransaction(id);
-  render();
+window.del = async (id) => {
+  if(confirm("Eliminare?")) {
+    transactions = transactions.filter(x => x.id !== id);
+    await deleteTransaction(id);
+    render();
+  }
 };
 
+// Utility
+function populateCategories() {
+  const sel = document.getElementById("fCat");
+  const tipo = document.getElementById("fTipo").value;
+  sel.innerHTML = '<option value="">Categoria...</option>';
+  const cats = tipo === "entrata" 
+    ? [...CATEGORIES.entrata.ricorrenti, ...CATEGORIES.entrata.una_tantum]
+    : [...CATEGORIES.uscita.ricorrenti, ...CATEGORIES.uscita.una_tantum];
+  cats.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+}
+
+function updateMonthLabel() { document.getElementById("currentMonth").textContent = currentMonth; }
+function fmt(n) { return `€${n.toFixed(2)}`; }
 function renderRollover(conguaglio, cassa, utile) {
-  const ul = document.getElementById("rolloverList");
-  if (!ul) return;
-  
-  ul.innerHTML = `
-    <li>🔹 Cassa reale: € ${cassa.toFixed(2)}</li>
-    <li>🔹 Conguaglio (soglia €${QUOTA_BASELINA}): € ${conguaglio.toFixed(2)}</li>
-    <li>🔹 Utile ripartibile: € ${utile.toFixed(2)}</li>
-    <li>🔹 Quota per socio: € ${(utile / 2).toFixed(2)}</li>
-    ${cassa < 0 ? '<li style="color:red;font-weight:bold">⚠️ Cassa negativa!</li>' : ''}
+  document.getElementById("rolloverList").innerHTML = `
+    <li>💰 Cassa: ${fmt(cassa)}</li>
+    <li>⚖️ Conguaglio: ${fmt(conguaglio)}</li>
+    <li>📉 Utile: ${fmt(utile)}</li>
   `;
 }
