@@ -1,7 +1,6 @@
-// CONFIGURAZIONE
-const SUPABASE_URL = "https://igmmekejpqbbctjupsqa.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlnbW1la2VqcHFiYmN0anVwc3FhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODQ4MjgsImV4cCI6MjA5NDI2MDgyOH0.TYFey7KCDrWSikDEsDDIba7E65sD0EhS1CF-tsKRGJs";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+import { CONFIG } from "./config.js";
+
+const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
 // --- CATEGORIE ---
 export async function loadCategoriesFromDB() {
@@ -17,34 +16,43 @@ export async function deleteCategoryFromDB(id) {
   await supabase.from("categories").delete().eq("id", id);
 }
 
-// --- TELEGRAM ---
+// --- TELEGRAM (Sicuro) ---
 export async function sendTelegramMessage(msg) {
-  // Usa la tua chat ID hardcoded qui per testare
-  const CHAT_ID = "75236001"; 
-  const BOT_TOKEN = "8664363802:AAHySYi_TzchyVM2ADiXQuatipi3WSJ0gEY"; // ⚠️ METTI QUI IL TOKEN DEL TUO BOT
-
-  if(BOT_TOKEN === "8664363802:AAHySYi_TzchyVM2ADiXQuatipi3WSJ0gEY") {
-    alert("Configura il BOT_TOKEN nel file db-manager.js");
+  if (!CONFIG.TELEGRAM_BOT_TOKEN || CONFIG.TELEGRAM_BOT_TOKEN === "INSERISCI_TOKEN_QUI") {
+    alert("⚠️ Configura il Telegram Bot Token in config.js");
     return;
   }
 
-  const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-  await fetch(url, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ chat_id: CHAT_ID, text: msg })
-  });
-  alert("Messaggio inviato a Telegram!");
+  const url = `https://api.telegram.org/bot${CONFIG.TELEGRAM_BOT_TOKEN}/sendMessage`;
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ 
+        chat_id: CONFIG.TELEGRAM_CHAT_ID, 
+        text: msg,
+        parse_mode: "HTML"
+      })
+    });
+    
+    const result = await response.json();
+    if (result.ok) {
+      alert("✅ Messaggio inviato a Telegram!");
+    } else {
+      alert("❌ Errore Telegram: " + result.description);
+    }
+  } catch (error) {
+    alert("❌ Errore di connessione: " + error.message);
+  }
 }
 
 // --- GRAFICI ---
 export function renderBarChart(canvasId, labels, dataEntrate, dataUscite) {
   const ctx = document.getElementById(canvasId);
-  if(!ctx) return;
+  if (!ctx) return;
   
-  // Distruggi vecchio grafico
   const oldChart = Chart.getChart(canvasId);
-  if(oldChart) oldChart.destroy();
+  if (oldChart) oldChart.destroy();
 
   new Chart(ctx, {
     type: 'bar',
@@ -55,6 +63,11 @@ export function renderBarChart(canvasId, labels, dataEntrate, dataUscite) {
         { label: 'Uscite', data: dataUscite, backgroundColor: '#ef4444', borderRadius: 5 }
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { beginAtZero: true } }
+    }
   });
 }
