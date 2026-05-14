@@ -20,10 +20,22 @@ export async function loadTransactions() {
 }
 
 export async function saveTransaction(t) {
-  const { error } = await supabase.from("transactions").insert([t]);
-  if (error) console.error("Errore insert:", error);
+  // ✅ Rimuovi l'id dall'oggetto prima di inserire
+  const { id, created_at, ...dataToInsert } = t;
+  
+  const { data, error } = await supabase
+    .from("transactions")
+    .insert([dataToInsert])
+    .select(); // ✅ Seleziona i dati inseriti per ottenere l'ID generato
+  
+  if (error) {
+    console.error("❌ Errore insert:", error);
+    throw error;
+  }
+  
+  // ✅ Restituisci il movimento con l'ID corretto generato da Supabase
+  return data ? data[0] : null;
 }
-
 export async function updateTransaction(id, updates) {
   const { error } = await supabase
     .from("transactions")
