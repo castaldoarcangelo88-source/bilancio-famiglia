@@ -16,7 +16,8 @@ export const STORAGE_KEY = "famiglia_finance_v1";
 
 export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, reale) {
   return {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+    // ❌ RIMOSSO: id generato manualmente (non è UUID valido)
+    // ✅ Supabase genererà automaticamente l'UUID grazie a DEFAULT gen_random_uuid()
     mese, 
     tipo, 
     cat, 
