@@ -1,4 +1,5 @@
 import { supabase } from "./storage.js";
+import { CONFIG } from "./config.js";
 
 // --- CATEGORIE ---
 export async function loadCategoriesFromDB() {
@@ -14,26 +15,43 @@ export async function deleteCategoryFromDB(id) {
   await supabase.from("categories").delete().eq("id", id);
 }
 
-// --- TELEGRAM ---
+// --- TELEGRAM (FIX DEFINITIVO) ---
 export async function sendTelegramMessage(msg) {
-  // ⚠️ Se non hai avviato il bot su Telegram, riceverai "chat not found"
-  if (!CONFIG.TELEGRAM_BOT_TOKEN || CONFIG.TELEGRAM_BOT_TOKEN.includes("INSERISCI")) {
+  const token = CONFIG.TELEGRAM_BOT_TOKEN;
+  const chatId = CONFIG.TELEGRAM_CHAT_ID;
+  
+  if (!token || token.includes("INSERISCI")) {
     alert("⚠️ Configura il BOT_TOKEN in config.js");
     return;
   }
+  
+  if (!chatId) {
+    alert("⚠️ Configura il CHAT_ID in config.js");
+    return;
+  }
 
-  const url = `https://api.telegram.org/bot${CONFIG.TELEGRAM_BOT_TOKEN}/sendMessage`;
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  
   try {
-    const res = await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ chat_id: CONFIG.TELEGRAM_CHAT_ID, text: msg, parse_mode: "HTML" })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        chat_id: chatId, 
+        text: msg, 
+        parse_mode: "HTML" 
+      })
     });
-    const data = await res.json();
-    if (data.ok) alert("✅ Notifica inviata!");
-    else alert("❌ Errore Telegram: " + data.description);
-  } catch (e) {
-    alert("❌ Errore connessione: " + e.message);
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert("✅ Messaggio inviato a Telegram!");
+    } else {
+      alert(`❌ Errore Telegram: ${data.description}\n\n💡 Ricorda: devi aver cliccato /start sul bot Telegram!`);
+    }
+  } catch (error) {
+    alert(`❌ Errore connessione: ${error.message}`);
   }
 }
 
@@ -56,7 +74,7 @@ export function renderChart(canvasId, labels, dataIn, dataOut) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // ✅ Fondamentale per il contenitore CSS
+      maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom' } },
       scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } } }
     }
