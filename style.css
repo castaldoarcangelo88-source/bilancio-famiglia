@@ -1,80 +1,99 @@
-:root {
-  --bg: #f4f6f9; --card: #ffffff; --text: #1f2937; --gray: #9ca3af;
-  --primary: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
-  --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+/* Grafici e Tabs */
+.charts-section { 
+  margin: 0 16px 20px; 
+  background: var(--card); 
+  padding: 16px; 
+  border-radius: var(--radius); 
+  box-shadow: var(--shadow); 
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
-
-/* Header */
-header {
-  display: flex; justify-content: space-between; align-items: center;
-  background: var(--card); padding: 12px 16px; position: sticky; top: 0; z-index: 100;
-  box-shadow: var(--shadow);
-}
-h1 { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
-.month-selector { display: flex; align-items: center; gap: 8px; background: #f3f4f6; padding: 4px; border-radius: 20px; }
-.month-selector button { border: none; background: none; cursor: pointer; padding: 4px 10px; font-weight: bold; font-size: 1rem; }
-#currentMonth { font-weight: 700; font-size: 0.95rem; min-width: 70px; text-align: center; }
-
-/* Alert Box */
-#alert-box {
-  background: var(--danger); color: white; padding: 10px; text-align: center; font-weight: bold;
-  display: none; animation: fadeIn 0.3s;
+.chart-tabs { 
+  display: flex; 
+  gap: 8px; 
+  margin-bottom: 16px; 
+  border-bottom: 2px solid #e5e7eb; 
 }
 
-/* Dashboard KPI */
-.dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; }
-.card { background: var(--card); padding: 12px; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center; }
-.kpi span { display: block; font-size: 0.75rem; color: var(--gray); text-transform: uppercase; margin-bottom: 4px; }
-.kpi strong { font-size: 1.1rem; font-weight: 800; }
-
-/* Form */
-.input-panel { background: var(--card); margin: 0 16px 16px; padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); }
-.form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-select, input[type="number"] { width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 1rem; background: #f9fafb; }
-.form-options { display: flex; gap: 15px; margin-bottom: 12px; font-size: 0.9rem; }
-.btn-primary { width: 100%; padding: 14px; background: var(--success); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
-.btn-secondary { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-/* Desktop Table */
-.table-panel { padding: 0 16px; margin-bottom: 20px; }
-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
-th { background: #f9fafb; font-weight: 600; }
-
-/* Mobile List Cards */
-.mobile-only { padding: 0 16px; }
-.m-card { background: var(--card); padding: 14px; border-radius: var(--radius); margin-bottom: 10px; box-shadow: var(--shadow); border-left: 4px solid var(--gray); display: flex; justify-content: space-between; align-items: center; }
-.m-card.entrata { border-left-color: var(--success); }
-.m-card.uscita { border-left-color: var(--danger); }
-.m-info h4 { font-size: 1rem; margin-bottom: 2px; }
-.m-info p { font-size: 0.85rem; color: var(--gray); }
-.m-amount { font-weight: 800; font-size: 1.1rem; }
-.m-actions { margin-top: 8px; display: flex; gap: 10px; border-top: 1px solid #f3f4f6; padding-top: 8px; }
-.m-btn { flex: 1; padding: 6px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-.m-btn.conf { background: #d1fae5; color: #065f46; }
-.m-btn.del { background: #fee2e2; color: #991b1b; }
-
-/* Riepilogo */
-.rollover-panel { padding: 0 16px 20px; }
-.rollover-panel ul { list-style: none; margin-bottom: 15px; }
-.rollover-panel li { padding: 8px 0; border-bottom: 1px dashed #e5e7eb; font-size: 0.9rem; }
-
-/* Utility */
-.badge { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
-.badge.real { background: #d1fae5; color: #065f46; }
-.badge.atteso { background: #fef3c7; color: #92400e; }
-
-/* Responsive Hiding */
-@media (max-width: 768px) {
-  .desktop-only { display: none; }
-  .dashboard { grid-template-columns: 1fr 1fr; }
-  .card.kpi:last-child { grid-column: span 2; }
+.tab-btn { 
+  padding: 10px 16px; 
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  font-weight: 600; 
+  color: var(--gray);
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
 }
-@media (min-width: 769px) {
-  .mobile-only { display: none; }
-  .btn-primary { width: auto; padding: 10px 20px; }
+
+.tab-btn.active { 
+  color: var(--primary); 
+  border-bottom-color: var(--primary);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.date-filter { 
+  display: flex; 
+  gap: 10px; 
+  margin-bottom: 15px; 
+}
+
+.date-filter input { flex: 1; }
+.date-filter button { 
+  padding: 10px 20px; 
+  background: var(--primary); 
+  color: white; 
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer; 
+}
+
+/* Settings */
+.category-manager { 
+  display: flex; 
+  gap: 8px; 
+  flex-wrap: wrap; 
+}
+
+.category-manager input, 
+.category-manager select { 
+  flex: 1; 
+  min-width: 120px; 
+}
+
+.category-manager button { 
+  padding: 10px; 
+  background: var(--success); 
+  color: white; 
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer; 
+}
+
+.cat-item { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 8px; 
+  background: #f9fafb; 
+  margin: 5px 0; 
+  border-radius: 6px; 
+}
+
+.cat-item button { 
+  background: var(--danger); 
+  color: white; 
+  border: none; 
+  padding: 4px 8px; 
+  border-radius: 4px; 
+  cursor: pointer; 
+}
+
+#telegramChatId { 
+  width: 100%; 
+  padding: 10px; 
+  margin: 10px 0; 
+  border: 1px solid #e5e7eb; 
+  border-radius: 8px; 
 }
