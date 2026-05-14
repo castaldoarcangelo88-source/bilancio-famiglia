@@ -3,7 +3,7 @@ import { calcolaCassaReale, calcolaConguagli, ripartisciUtile } from "./logic.js
 import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV } from "./storage.js";
 import { loadCategoriesFromDB, addCategoryToDB, deleteCategoryFromDB, sendTelegramMessage, renderChart } from "./db-manager.js";
 
-// ✅ Stato isolato e sicuro
+// ✅ Stato globale
 const state = {
   currentMonth: new Date().toISOString().slice(0, 7),
   transactions: [],
@@ -11,24 +11,27 @@ const state = {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // 1. Carica Categorie
-  state.categories = await loadCategoriesFromDB();
-  renderCategorySelect();
-  renderCategoryList();
-
-  // 2. Carica Transazioni
-  state.transactions = await loadTransactions();
+  console.log("🚀 App avviata - Mese:", state.currentMonth);
   
-  // 3. Renderizza UI
-  updateMonthLabel();
-  render();
-  renderCharts();
-  
-  // 4. Attiva Eventi (una volta sola)
-  setupEvents();
+  try {
+    state.categories = await loadCategoriesFromDB();
+    renderCategorySelect();
+    renderCategoryList();
+    
+    state.transactions = await loadTransactions();
+    console.log("✅ Movimenti caricati:", state.transactions.length);
+    
+    updateMonthLabel();
+    render();
+    renderCharts();
+    setupEvents();
+  } catch (err) {
+    console.error("❌ Errore avvio:", err);
+    alert("Errore caricamento dati. Ricarica la pagina.");
+  }
 });
 
-// --- LOGICA MESI (Matematica pura, zero bug) ---
+// --- NAVIGAZIONE MESI ---
 function shiftMonth(delta) {
   let [y, m] = state.currentMonth.split('-').map(Number);
   m += delta;
@@ -46,7 +49,7 @@ function updateMonthLabel() {
   if (el) el.textContent = state.currentMonth;
 }
 
-// --- RENDER & KPI ---
+// --- RENDER ---
 function render() {
   const monthData = state.transactions.filter(t => t.mese === state.currentMonth);
   const cassa = calcolaCassaReale(monthData);
@@ -58,11 +61,13 @@ function render() {
   document.getElementById("kpiUtile").textContent = fmt(utileRipartibile);
 
   const box = document.getElementById("alert-box");
-  if (cassa < SOGLIA_ALLARME_CASSA) {
-    box.style.display = "block";
-    box.innerHTML = `⚠️ <b>ATTENZIONE:</b> Cassa €${cassa.toFixed(2)} < Soglia €${SOGLIA_ALLARME_CASSA}`;
-  } else {
-    box.style.display = "none";
+  if (box) {
+    if (cassa < SOGLIA_ALLARME_CASSA) {
+      box.style.display = "block";
+      box.innerHTML = `⚠️ <b>ATTENZIONE:</b> Cassa €${cassa.toFixed(2)} < Soglia €${SOGLIA_ALLARME_CASSA}`;
+    } else {
+      box.style.display = "none";
+    }
   }
 
   renderTable(monthData);
@@ -78,14 +83,13 @@ function renderCharts() {
   const outArr = cats.map(c => monthData.filter(t => t.cat === c && t.tipo === 'uscita').reduce((s,t)=>s+t.importo,0));
   
   renderChart('monthlyChart', cats, inArr, outArr);
-  
-  // Settimanale placeholder
   renderChart('weeklyChart', ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]);
 }
 
-// --- UI COMPONENTS ---
+// --- UI HELPERS ---
 function renderCategorySelect() {
   const sel = document.getElementById("fCat");
+  if (!sel) return;
   const type = document.getElementById("fTipo").value;
   sel.innerHTML = '<option value="">Categoria...</option>';
   state.categories.filter(c => c.type === type).forEach(c => {
@@ -95,7 +99,7 @@ function renderCategorySelect() {
 
 function renderCategoryList() {
   const list = document.getElementById("categoriesList");
-  if(!list) return;
+  if (!list) return;
   list.innerHTML = state.categories.map(c => `
     <div class="cat-item">
       <span>${c.name} <small>(${c.type})</small></span>
@@ -106,7 +110,7 @@ function renderCategoryList() {
 
 function renderTable(list) {
   const tb = document.querySelector("#transTable tbody");
-  if(!tb) return;
+  if (!tb) return;
   tb.innerHTML = list.length === 0 
     ? '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999">Nessun movimento</td></tr>'
     : list.map(t => `
@@ -123,7 +127,7 @@ function renderTable(list) {
 
 function renderMobileList(list) {
   const c = document.getElementById("mobile-container");
-  if(!c) return;
+  if (!c) return;
   c.innerHTML = list.length === 0
     ? '<p style="text-align:center;color:#999;padding:20px">Nessun movimento</p>'
     : list.map(t => `
@@ -140,45 +144,58 @@ function renderMobileList(list) {
 }
 
 function renderRollover(cong, cassa, utile) {
-  document.getElementById("rolloverList").innerHTML = `
+  const ul = document.getElementById("rolloverList");
+  if (!ul) return;
+  ul.innerHTML = `
     <li>💰 Cassa: ${fmt(cassa)}</li>
     <li>⚖️ Conguaglio: ${fmt(cong)}</li>
     <li>📉 Utile: ${fmt(utile)}</li>
   `;
 }
 
-// --- EVENT HANDLERS ---
+// --- EVENTI ---
 function setupEvents() {
-  document.getElementById("fTipo").addEventListener("change", renderCategorySelect);
+  const tipoSel = document.getElementById("fTipo");
+  if (tipoSel) tipoSel.addEventListener("change", renderCategorySelect);
   
-  document.getElementById("btnAggiungi").addEventListener("click", async () => {
-    const tipo = document.getElementById("fTipo").value;
-    const cat = document.getElementById("fCat").value;
-    const membro = document.getElementById("fMembro").value;
-    const importo = parseFloat(document.getElementById("fImporto").value);
-    const reale = document.getElementById("fReale").checked;
-    
-    if(!cat || isNaN(importo)) return alert("⚠️ Compila tutto!");
-    
-    const t = createTransaction(state.currentMonth, tipo, cat, membro, importo, false, reale);
-    const saved = await saveTransaction(t);
-    if(saved) {
-      state.transactions.push(saved);
-      render();
-      renderCharts();
-      document.getElementById("fImporto").value = "";
-    }
-  });
+  const btnAdd = document.getElementById("btnAggiungi");
+  if (btnAdd) {
+    btnAdd.addEventListener("click", async () => {
+      const tipo = document.getElementById("fTipo").value;
+      const cat = document.getElementById("fCat").value;
+      const membro = document.getElementById("fMembro").value;
+      const importo = parseFloat(document.getElementById("fImporto").value);
+      const reale = document.getElementById("fReale").checked;
+      
+      if (!cat || isNaN(importo)) return alert("⚠️ Compila categoria e importo!");
+      
+      const t = createTransaction(state.currentMonth, tipo, cat, membro, importo, false, reale);
+      try {
+        const saved = await saveTransaction(t);
+        if (saved) {
+          state.transactions.unshift(saved); // Aggiungi in cima
+          render();
+          renderCharts();
+          document.getElementById("fImporto").value = "";
+        }
+      } catch (err) {
+        alert("Errore salvataggio: " + err.message);
+      }
+    });
+  }
 
-  // ✅ Navigazione mesi (onclick diretto, mai duplicato)
-  document.getElementById("prevMonth").onclick = () => shiftMonth(-1);
-  document.getElementById("nextMonth").onclick = () => shiftMonth(1);
-  document.getElementById("btnExport").onclick = () => exportCSV(state.transactions);
+  const prevBtn = document.getElementById("prevMonth");
+  const nextBtn = document.getElementById("nextMonth");
+  if (prevBtn) prevBtn.onclick = () => shiftMonth(-1);
+  if (nextBtn) nextBtn.onclick = () => shiftMonth(1);
+  
+  const btnExp = document.getElementById("btnExport");
+  if (btnExp) btnExp.onclick = () => exportCSV(state.transactions);
 }
 
-// --- GLOBAL FUNCTIONS FOR HTML ---
+// --- GLOBAL FUNCTIONS ---
 window.deleteCat = async (id) => {
-  if(confirm("Eliminare?")) {
+  if (confirm("Eliminare categoria?")) {
     await deleteCategoryFromDB(id);
     state.categories = await loadCategoriesFromDB();
     renderCategoryList();
@@ -189,7 +206,7 @@ window.deleteCat = async (id) => {
 window.addNewCategory = async () => {
   const name = document.getElementById("newCatName").value;
   const type = document.getElementById("newCatType").value;
-  if(!name) return;
+  if (!name) return alert("Inserisci un nome!");
   await addCategoryToDB(name, type);
   state.categories = await loadCategoriesFromDB();
   renderCategoryList();
@@ -198,20 +215,23 @@ window.addNewCategory = async () => {
 };
 
 window.testTelegram = () => {
-  sendTelegramMessage(`📊 <b>Test Bilancio</b>\n💰 Cassa: ${document.getElementById("kpiCassa").textContent}\n📅 Mese: ${state.currentMonth}`);
+  const cassa = document.getElementById("kpiCassa").textContent;
+  const msg = `📊 <b>Test Bilancio Famiglia</b>\n\n💰 Cassa attuale: ${cassa}\n📅 Mese: ${state.currentMonth}\n\n✅ Tutto OK!`;
+  sendTelegramMessage(msg);
 };
 
 window.toggle = async (id) => {
   const t = state.transactions.find(x => x.id === id);
-  if(t) {
-    t.confermato = !t.confermato; t.reale = t.confermato;
-    await updateTransaction(id, {confermato: t.confermato, reale: t.reale});
+  if (t) {
+    t.confermato = !t.confermato;
+    t.reale = t.confermato;
+    await updateTransaction(id, { confermato: t.confermato, reale: t.reale });
     render();
   }
 };
 
 window.del = async (id) => {
-  if(confirm("Eliminare?")) {
+  if (confirm("Eliminare movimento?")) {
     state.transactions = state.transactions.filter(x => x.id !== id);
     await deleteTransaction(id);
     render();
