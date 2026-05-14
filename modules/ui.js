@@ -2,14 +2,14 @@ import { MEMBERS, CATEGORIES, createTransaction, QUOTA_BASELINA } from "./data-m
 import { calcolaCassaReale, calcolaConguagli, ripartisciUtile } from "./logic.js";
 import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV } from "./storage.js";
 
-// ✅ Variabile GLOBALE persistente
-window.currentMonth = window.currentMonth || new Date().toISOString().slice(0, 7);
+// ✅ Variabile locale per il mese corrente (NON window)
+let currentMonth = new Date().toISOString().slice(0, 7);
 let transactions = [];
 let eventsInitialized = false;
 
 // Inizializzazione
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("🏠 App avviata - Mese corrente:", window.currentMonth);
+  console.log("🏠 App avviata - Mese corrente:", currentMonth);
   
   populateCategories();
   updateMonthLabel();
@@ -57,7 +57,10 @@ function populateCategories() {
 
 function updateMonthLabel() {
   const el = document.getElementById("currentMonth");
-  if (el) el.textContent = window.currentMonth;
+  if (el) {
+    el.textContent = currentMonth;
+    console.log("📅 Etichetta mese aggiornata a:", currentMonth);
+  }
 }
 
 function showLoading(state) {
@@ -90,7 +93,7 @@ function setupEvents() {
         return;
       }
       
-      const t = createTransaction(window.currentMonth, tipo, cat, membro, importo, ricorrente, reale);
+      const t = createTransaction(currentMonth, tipo, cat, membro, importo, ricorrente, reale);
       
       try {
         const saved = await saveTransaction(t);
@@ -137,10 +140,10 @@ function setupEvents() {
 
 function shiftMonth(delta) {
   console.log("📅 shiftMonth chiamata con delta:", delta);
-  console.log("📅 Mese attuale PRIMA:", window.currentMonth);
+  console.log("📅 Mese attuale PRIMA:", currentMonth);
   
   // Split anno e mese
-  const parts = window.currentMonth.split("-");
+  const parts = currentMonth.split("-");
   console.log("📅 Parts:", parts);
   
   const year = parseInt(parts[0], 10);
@@ -167,18 +170,18 @@ function shiftMonth(delta) {
   
   // Formatta nuovo mese (YYYY-MM)
   const monthStr = String(newMonth).padStart(2, '0');
-  window.currentMonth = `${newYear}-${monthStr}`;
+  currentMonth = `${newYear}-${monthStr}`;
   
-  console.log("✅ Mese aggiornato a:", window.currentMonth);
+  console.log("✅ Mese aggiornato a:", currentMonth);
   
   updateMonthLabel();
   render();
 }
 
 function render() {
-  console.log(" Render per mese:", window.currentMonth);
+  console.log(" Render per mese:", currentMonth);
   
-  const monthTrans = transactions.filter(t => t.mese === window.currentMonth);
+  const monthTrans = transactions.filter(t => t.mese === currentMonth);
   
   const cassa = calcolaCassaReale(monthTrans);
   const conguaglio = calcolaConguagli(monthTrans);
