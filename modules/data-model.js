@@ -1,20 +1,43 @@
-export const MEMBERS = ["Capo", "Moglie"];
+export const MEMBERS = ["Capo", "Anna"];
 
 export const CATEGORIES = {
   entrata: {
-    ricorrenti: ["Stipendio", "Affitti/Rendite", "Bonus mensili"],
-    una_tantum: ["Bonus straordinari", "Vendite beni", "Rimborsi", "Regali ricevuti"]
+    ricorrenti: ["Stipendio", "Affitti/Rendite", "Bonus mensili", "Rimborsi"],
+    una_tantum: ["Bonus straordinari", "Vendite beni", "Regali ricevuti", "Altro"]
   },
   uscita: {
-    ricorrenti: ["Mutuo/Affitto", "Bollette", "Spesa alimentare", "Assicurazioni", "Istruzione", "Trasporti", "Abbonamenti"],
-    una_tantum: ["Sanità", "Manutenzioni", "Viaggi", "Regali", "Investimenti una tantum", "Prelivo personale"]
+    ricorrenti: [
+      "Mutuo/Affitto", 
+      "Bollette", 
+      "Spesa alimentare", 
+      "Assicurazioni", 
+      "Istruzione", 
+      "Trasporti", 
+      "Abbonamenti",
+      "Piscina",
+      "Danza",
+      "Dottoresse",
+      "Svago",
+      "Casa"
+    ],
+    una_tantum: [
+      "Sanità", 
+      "Manutenzioni", 
+      "Viaggi", 
+      "Regali", 
+      "Investimenti una tantum", 
+      "Prelivo personale",
+      "Dottoresse",
+      "Svago",
+      "Casa"
+    ]
   }
 };
 
-export const QUOTA_BASELINA = 600;
+export const QUOTA_BASELINA = 600; // Prelievo mensile tollerato
+export const SOGLIA_ALLARME_CASSA = 500; // Alert se sotto questa cifra
 export const STORAGE_KEY = "famiglia_finance_v1";
 
-// ✅ NON generare ID qui - lascia fare a Supabase
 export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, reale) {
   return {
     mese, 
