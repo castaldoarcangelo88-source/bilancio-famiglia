@@ -14,8 +14,6 @@ export function calcolaConguagli(transazioni) {
       .filter(t => t.membro === m && t.tipo === "uscita" && t.reale)
       .reduce((s, t) => s + t.importo, 0);
     
-    // Se prelievo > quota -> debito (riduce utile ripartibile)
-    // Se prelievo < quota -> credito (aumenta utile ripartibile)
     const diff = prelievi - QUOTA_BASELINA;
     conguaglio += diff;
   });
