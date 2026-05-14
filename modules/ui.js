@@ -94,18 +94,20 @@ function setupEvents() {
       }
       
       const t = createTransaction(currentMonth, tipo, cat, membro, importo, ricorrente, reale);
-      
-      try {
-        await saveTransaction(t);
-        transactions.push(t);
-        render();
-        form.reset();
-        populateCategories();
-        alert("✅ Movimento aggiunto!");
-      } catch (err) {
-        console.error("❌ Errore salvataggio:", err);
-        alert("Errore nel salvataggio");
-      }
+
+try {
+  const saved = await saveTransaction(t);
+  if (saved) {
+    transactions.push(saved); // ✅ Usa l'oggetto con ID generato da Supabase
+    render();
+    form.reset();
+    populateCategories();
+    alert("✅ Movimento aggiunto!");
+  }
+} catch (err) {
+  console.error("❌ Errore salvataggio:", err);
+  alert("Errore nel salvataggio: " + err.message);
+}
     });
   }
   
