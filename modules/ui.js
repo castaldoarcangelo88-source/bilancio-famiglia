@@ -1,4 +1,4 @@
-import { MEMBERS, CATEGORIES, createTransaction, QUOTA_BASELINA } from "./data-model.js";
+import { MEMBERS, CATEGORIES, createTransaction, QUOTA_BASELINA, SOGLIA_ALLARME_CASSA } from "./data-model.js";
 import { calcolaCassaReale, calcolaConguagli, ripartisciUtile } from "./logic.js";
 import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV } from "./storage.js";
 
@@ -39,7 +39,13 @@ async function gestisciRicorrenze() {
     // Evita duplicati
     const exists = transactions.some(x => x.mese === currentMonth && x.cat === t.cat && x.membro === t.membro && x.importo === t.importo);
     if (!exists) {
-      const newT = { ...t, mese: currentMonth, confermato: false, reale: false, created_at: new Date().toISOString() };
+      const newT = { 
+        ...t, 
+        mese: currentMonth, 
+        confermato: false, // ✅ PARTE COME ATTESO
+        reale: false,      // ✅ PARTE COME ATTESO
+        created_at: new Date().toISOString() 
+      };
       await saveTransaction(newT);
       transactions.push(newT);
     }
@@ -139,12 +145,12 @@ function renderMobileList(list) {
   `).join("");
 }
 
-// Alert Cassa
+// Alert Cassa - ✅ SOGLIA 500€
 function checkAlerts(cassa) {
   const box = document.getElementById("alert-box");
-  if (cassa < 0) {
+  if (cassa < SOGLIA_ALLARME_CASSA) {
     box.style.display = "block";
-    box.textContent = `⚠️ ATTENZIONE: Cassa negativa di €${Math.abs(cassa).toFixed(2)}`;
+    box.textContent = `⚠️ ATTENZIONE: Cassa sotto soglia (€${cassa.toFixed(2)} < €${SOGLIA_ALLARME_CASSA})`;
   } else {
     box.style.display = "none";
   }
