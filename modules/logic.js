@@ -8,20 +8,44 @@ export function calcolaCassaReale(transazioni) {
 }
 
 export function calcolaConguagli(transazioni) {
-  let conguaglio = 0;
-  MEMBERS.forEach(m => {
-    const prelievi = transazioni
-      .filter(t => t.membro === m && t.tipo === "uscita" && t.reale)
-      .reduce((s, t) => s + t.importo, 0);
+  // ✅ Calcola solo i movimenti REALI (confermati)
+  const reali = transazioni.filter(t => t.reale);
+  
+  let totaleConguaglio = 0;
+  
+  MEMBERS.forEach(membro => {
+    // Calcola quanto ha prelevato questo membro (solo uscite reali)
+    const prelieviMembro = reali
+      .filter(t => t.membro === membro && t.tipo === "uscita")
+      .reduce((somma, t) => somma + t.importo, 0);
     
-    const diff = prelievi - QUOTA_BASELINA;
-    conguaglio += diff;
+    // Calcola quanto ha versato questo membro (solo entrate reali)
+    const versamentiMembro = reali
+      .filter(t => t.membro === membro && t.tipo === "entrata")
+      .reduce((somma, t) => somma + t.importo, 0);
+    
+    // Bilancio personale del membro
+    const bilancioPersonale = versamentiMembro - prelieviMembro;
+    
+    // Se ha prelevato più della soglia base, deve restituire la differenza
+    // Se ha prelevato meno, ha un credito
+    const differenzaDaSoglia = prelieviMembro - QUOTA_BASELINA;
+    
+    totaleConguaglio += differenzaDaSoglia;
+    
+    console.log(`📊 ${membro}: Versamenti €${versamentiMembro}, Prelievi €${prelieviMembro}, Differenza soglia: €${differenzaDaSoglia}`);
   });
-  return conguaglio;
+  
+  console.log("💰 Totale Conguaglio:", totaleConguaglio);
+  return totaleConguaglio;
 }
 
 export function ripartisciUtile(cassaReale, conguaglio) {
+  // Utile ripartibile = Cassa reale - Conguaglio
   const utileRipartibile = cassaReale - conguaglio;
+  
+  // Quota per socio (50% ciascuno)
   const quota = utileRipartibile / MEMBERS.length;
+  
   return { utileRipartibile, quota };
 }
