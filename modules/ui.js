@@ -2,13 +2,14 @@ import { MEMBERS, CATEGORIES, createTransaction, QUOTA_BASELINA } from "./data-m
 import { calcolaCassaReale, calcolaConguagli, ripartisciUtile } from "./logic.js";
 import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV } from "./storage.js";
 
-let currentMonth = new Date().toISOString().slice(0, 7);
+// ✅ Variabile GLOBALE persistente
+window.currentMonth = window.currentMonth || new Date().toISOString().slice(0, 7);
 let transactions = [];
 let eventsInitialized = false;
 
 // Inizializzazione
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log(" App avviata - Mese corrente:", currentMonth);
+  console.log("🏠 App avviata - Mese corrente:", window.currentMonth);
   
   populateCategories();
   updateMonthLabel();
@@ -56,7 +57,7 @@ function populateCategories() {
 
 function updateMonthLabel() {
   const el = document.getElementById("currentMonth");
-  if (el) el.textContent = currentMonth;
+  if (el) el.textContent = window.currentMonth;
 }
 
 function showLoading(state) {
@@ -89,7 +90,7 @@ function setupEvents() {
         return;
       }
       
-      const t = createTransaction(currentMonth, tipo, cat, membro, importo, ricorrente, reale);
+      const t = createTransaction(window.currentMonth, tipo, cat, membro, importo, ricorrente, reale);
       
       try {
         const saved = await saveTransaction(t);
@@ -111,17 +112,17 @@ function setupEvents() {
   const nextBtn = document.getElementById("nextMonth");
   
   if (prevBtn) {
-    prevBtn.addEventListener("click", () => {
-      console.log("◀️ Mese precedente");
+    prevBtn.onclick = function() {
+      console.log("◀️ Click mese precedente");
       shiftMonth(-1);
-    });
+    };
   }
   
   if (nextBtn) {
-    nextBtn.addEventListener("click", () => {
-      console.log("▶️ Mese successivo");
+    nextBtn.onclick = function() {
+      console.log("▶️ Click mese successivo");
       shiftMonth(1);
-    });
+    };
   }
   
   const exportBtn = document.getElementById("btnExport");
@@ -135,15 +136,24 @@ function setupEvents() {
 }
 
 function shiftMonth(delta) {
-  console.log("📅 Spostamento di", delta, "da", currentMonth);
+  console.log("📅 shiftMonth chiamata con delta:", delta);
+  console.log("📅 Mese attuale PRIMA:", window.currentMonth);
   
-  const parts = currentMonth.split("-");
+  // Split anno e mese
+  const parts = window.currentMonth.split("-");
+  console.log("📅 Parts:", parts);
+  
   const year = parseInt(parts[0], 10);
   const month = parseInt(parts[1], 10);
+  
+  console.log("📅 Year:", year, "Month:", month);
   
   let newMonth = month + delta;
   let newYear = year;
   
+  console.log("📅 NewMonth prima normalizzazione:", newMonth);
+  
+  // Gestione overflow/underflow mesi
   while (newMonth > 12) {
     newMonth -= 12;
     newYear += 1;
@@ -153,15 +163,22 @@ function shiftMonth(delta) {
     newYear -= 1;
   }
   
-  currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
+  console.log("📅 NewMonth dopo normalizzazione:", newMonth, "NewYear:", newYear);
   
-  console.log("✅ Nuovo mese:", currentMonth);
+  // Formatta nuovo mese (YYYY-MM)
+  const monthStr = String(newMonth).padStart(2, '0');
+  window.currentMonth = `${newYear}-${monthStr}`;
+  
+  console.log("✅ Mese aggiornato a:", window.currentMonth);
+  
   updateMonthLabel();
   render();
 }
 
 function render() {
-  const monthTrans = transactions.filter(t => t.mese === currentMonth);
+  console.log(" Render per mese:", window.currentMonth);
+  
+  const monthTrans = transactions.filter(t => t.mese === window.currentMonth);
   
   const cassa = calcolaCassaReale(monthTrans);
   const conguaglio = calcolaConguagli(monthTrans);
