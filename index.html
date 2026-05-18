@@ -5,20 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Bilancio Famiglia</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
-  
-  <!-- CSS con cache buster -->
-  <link rel="stylesheet" href="style.css?v=20">
-  
-  <!-- Librerie Esterne -->
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- Script di Protezione: Se non loggato, vai a login.html -->
+  <script type="module">
+    import { CONFIG } from './modules/config.js';
+    const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) window.location.replace("login.html");
+    
+    // Tasto Logout
+    window.logout = async () => {
+      await sb.auth.signOut();
+      window.location.replace("login.html");
+    };
+  </script>
+
   <header>
     <div class="header-left">
       <h1>🏠 Bilancio</h1>
     </div>
     <div class="month-selector">
+      <button onclick="logout()" style="color:red; border:none; background:none; font-weight:bold; cursor:pointer;">🚪 Esci</button>
       <button id="prevMonth">◀</button>
       <span id="currentMonth">--</span>
       <button id="nextMonth">▶</button>
@@ -28,14 +39,14 @@
   <div id="alert-box"></div>
 
   <main>
-    <!-- KPI Dashboard -->
+    <!-- KPI -->
     <section class="dashboard">
       <div class="card kpi"><span>Cassa Reale</span><strong id="kpiCassa">€ 0,00</strong></div>
       <div class="card kpi"><span>Conguaglio</span><strong id="kpiConguaglio">€ 0,00</strong></div>
       <div class="card kpi"><span>Utile Net</span><strong id="kpiUtile">€ 0,00</strong></div>
     </section>
 
-    <!-- Form Aggiunta Rapida -->
+    <!-- Form -->
     <section class="input-panel">
       <div class="form-row">
         <select id="fTipo"><option value="entrata">Entrata</option><option value="uscita">Uscita</option></select>
@@ -52,8 +63,7 @@
       <button id="btnAggiungi" class="btn-primary"> Aggiungi Movimento</button>
     </section>
 
-    <!-- SEZIONE GRAFICI E IMPOSTAZIONI -->
-        <!-- SEZIONE GRAFICI -->
+    <!-- Report & Grafici -->
     <section class="charts-section">
       <h2>📊 Report</h2>
       <div class="chart-tabs">
@@ -65,11 +75,9 @@
       <div id="weekly-tab" class="tab-content active">
         <div class="chart-box"><canvas id="weeklyChart"></canvas></div>
       </div>
-      
       <div id="monthly-tab" class="tab-content">
         <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
       </div>
-      
       <div id="settings-tab" class="tab-content">
         <h3>⚙️ Gestione Categorie</h3>
         <div class="category-manager">
@@ -80,80 +88,19 @@
         <div id="categoriesList" class="cat-list"></div>
 
         <h3 style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;">🤖 Telegram</h3>
-        <p style="font-size:0.8rem; color:#666">ID: 75236001 | ⚠️ Ricorda di cliccare /start sul bot Telegram prima!</p>
         <button onclick="testTelegram()" class="btn-secondary">Test Notifica</button>
       </div>
     </section>
 
-    <!-- ... (resto del codice HTML invariato) ... -->
-
-  <div class="mobile-spacer"></div>
-
-  <!-- Script Versionati -->
-  <script type="module" src="./modules/config.js?v=30"></script>
-  <script type="module" src="./modules/storage.js?v=30"></script>
-  <script type="module" src="./modules/db-manager.js?v=30"></script>
-  <script type="module" src="./modules/ui.js?v=30"></script>
-  
-  <script>
-    window.showTab = (t) => {
-      document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-      document.getElementById(t+'-tab').classList.add('active');
-      document.querySelectorAll('.tab-btn')[['weekly','monthly','settings'].indexOf(t)].classList.add('active');
-    };
-  </script>
-</body>
-</html>
-      
-      <!-- Tab Settimanale -->
-      <div id="weekly-tab" class="tab-content active">
-        <canvas id="weeklyChart" height="200"></canvas>
-      </div>
-      
-      <!-- Tab Mensile -->
-      <div id="monthly-tab" class="tab-content">
-        <div class="date-filter">
-          <input type="month" id="filterMonth">
-          <button onclick="updateMonthlyChart()" class="btn-small">Filtra</button>
-        </div>
-        <canvas id="monthlyChart" height="250"></canvas>
-      </div>
-      
-      <!-- Tab Impostazioni / Categorie -->
-      <div id="settings-tab" class="tab-content">
-        <h3>⚙️ Gestione Categorie</h3>
-        <p style="font-size:0.8rem; color:#666">Aggiungi o rimuovi voci dal menu.</p>
-        
-        <div class="category-manager">
-          <input type="text" id="newCatName" placeholder="Nome (es. Palestra)">
-          <select id="newCatType">
-            <option value="entrata">Entrata</option>
-            <option value="uscita">Uscita</option>
-          </select>
-          <button onclick="addNewCategory()" class="btn-small">+</button>
-        </div>
-        
-        <div id="categoriesList" class="cat-list">Caricamento...</div>
-
-        <h3 style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;"> Telegram</h3>
-        <p style="font-size:0.8rem; color:#666">ID configurato: 75236001</p>
-        <button onclick="testTelegram()" class="btn-secondary">Test Notifica</button>
-      </div>
-    </section>
-
-    <!-- Tabella Desktop -->
+    <!-- Movimenti -->
     <section class="table-panel desktop-only">
       <h2>📋 Movimenti</h2>
       <table id="transTable">
-        <thead>
-          <tr><th>Tipo</th><th>Categoria</th><th>Chi</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr>
-        </thead>
+        <thead><tr><th>Tipo</th><th>Categoria</th><th>Chi</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr></thead>
         <tbody></tbody>
       </table>
     </section>
 
-    <!-- Lista Mobile -->
     <section class="mobile-only" id="mobile-list">
       <h2>📋 Movimenti</h2>
       <div id="mobile-container"></div>
@@ -169,22 +116,17 @@
   <div class="mobile-spacer"></div>
 
   <!-- Script Principali -->
-    <script type="module" src="./modules/config.js?v=35"></script>
-  <script type="module" src="./modules/storage.js?v=35"></script>
-  <script type="module" src="./modules/db-manager.js?v=35"></script>
-  <script type="module" src="./modules/ui.js?v=35"></script>
-
-  <!-- Funzioni Globali -->
+  <script type="module" src="./modules/config.js?v=50"></script>
+  <script type="module" src="./modules/storage.js?v=50"></script>
+  <script type="module" src="./modules/db-manager.js?v=50"></script>
+  <script type="module" src="./modules/ui.js?v=50"></script>
+  
   <script>
-    window.showTab = function(tabName) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      
-      document.getElementById(tabName + '-tab').classList.add('active');
-      const btns = document.querySelectorAll('.tab-btn');
-      if(tabName === 'weekly') btns[0].classList.add('active');
-      if(tabName === 'monthly') btns[1].classList.add('active');
-      if(tabName === 'settings') btns[2].classList.add('active');
+    window.showTab = (t) => {
+      document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+      document.getElementById(t+'-tab').classList.add('active');
+      document.querySelectorAll('.tab-btn')[['weekly','monthly','settings'].indexOf(t)].classList.add('active');
     };
   </script>
 </body>
