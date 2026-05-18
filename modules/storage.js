@@ -1,10 +1,7 @@
 import { CONFIG } from "./config.js";
 
-// ✅ Unica inizializzazione Supabase
-if (!window.supabaseClient) {
-  window.supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-}
-export const supabase = window.supabaseClient;
+// ✅ Client unico con supporto Auth
+export const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
 
 export async function loadTransactions() {
   const { data, error } = await supabase.from("transactions").select("*").order("created_at", { ascending: false });
