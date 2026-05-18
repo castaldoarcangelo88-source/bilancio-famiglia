@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Bilancio Famiglia</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .login-box { background: white; padding: 2rem; border-radius: 16px; box-shadow: var(--shadow); width: 100%; max-width: 350px; text-align: center; }
+    .login-box h2 { color: var(--primary); margin-bottom: 1.5rem; }
+    .login-box input { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+    .btn-login { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+    .btn-signup { width: 100%; padding: 12px; background: transparent; color: var(--gray); border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+    #error-msg { color: var(--danger); font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>🏠 Bilancio Famiglia</h2>
+    <div id="error-msg"></div>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button class="btn-login" onclick="handleAuth('login')">Accedi</button>
+    <button class="btn-signup" onclick="handleAuth('signup')">Registrati (Solo 1 volta)</button>
+  </div>
+
+  <script type="module">
+    import { CONFIG } from './modules/config.js';
+    window.supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+    window.handleAuth = async (type) => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errEl = document.getElementById('error-msg');
+      
+      if (!email || !password) {
+        errEl.textContent = "Inserisci email e password";
+        errEl.style.display = 'block';
+        return;
+      }
+
+      let res;
+      if (type === 'login') res = await supabase.auth.signInWithPassword({ email, password });
+      else res = await supabase.auth.signUp({ email, password });
+
+      if (res.error) {
+        errEl.textContent = res.error.message;
+        errEl.style.display = 'block';
+      } else {
+        window.location.href = 'index.html';
+      }
+    };
+  </script>
+</body>
+</html>
