@@ -1,0 +1,15 @@
+mese,tipo,cat,membro,importo,ricorrente,reale,confermato
+2026-05,entrata,Stipendio,Arcangelo,2500.00,true,true,true
+2026-05,entrata,Stipendio,Anna,1800.00,true,true,true
+2026-05,uscita,Mutuo/Affitto,Arcangelo,950.00,true,true,true
+2026-05,uscita,Bollette,Anna,180.50,true,true,true
+2026-05,uscita,Spesa alimentare,Arcangelo,320.00,true,false,false
+2026-05,uscita,Lavoro,Arcangelo,140.00,true,true,true
+2026-05,uscita,Trasporti,Anna,65.00,true,true,true
+2026-05,entrata,Bonus straordinari,Arcangelo,500.00,false,false,false
+2026-05,uscita,Sanita,Anna,120.00,false,true,true
+2026-05,uscita,Prelievo personale,Arcangelo,200.00,false,true,true
+2026-05,uscita,Prelievo personale,Anna,150.00,false,true,true
+2026-05,uscita,Salvadanaio,Arcangelo,250.00,false,true,true
+2026-05,entrata,Prelievo salvadanaio,Arcangelo,50.00,false,true,true
+2026-05,uscita,Sfizi,Arcangelo,80.00,false,true,true

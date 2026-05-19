@@ -4,129 +4,151 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Bilancio Famiglia</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css?v=29">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <!-- Script di Protezione: Se non loggato, vai a login.html -->
-  <script type="module">
-    import { CONFIG } from './modules/config.js';
-    const sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) window.location.replace("login.html");
-    
-    // Tasto Logout
-    window.logout = async () => {
-      await sb.auth.signOut();
-      window.location.replace("login.html");
-    };
-  </script>
-
   <header>
     <div class="header-left">
-      <h1>🏠 Bilancio</h1>
+      <h1>Bilancio</h1>
     </div>
     <div class="month-selector">
-      <button onclick="logout()" style="color:red; border:none; background:none; font-weight:bold; cursor:pointer;">🚪 Esci</button>
-      <button id="prevMonth">◀</button>
+      <button id="prevMonth" aria-label="Mese precedente">&lt;</button>
       <span id="currentMonth">--</span>
-      <button id="nextMonth">▶</button>
+      <button id="nextMonth" aria-label="Mese successivo">&gt;</button>
     </div>
   </header>
 
   <div id="alert-box"></div>
 
   <main>
-    <!-- KPI -->
     <section class="dashboard">
-      <div class="card kpi"><span>Cassa Reale</span><strong id="kpiCassa">€ 0,00</strong></div>
-      <div class="card kpi"><span>Conguaglio</span><strong id="kpiConguaglio">€ 0,00</strong></div>
-      <div class="card kpi"><span>Utile Net</span><strong id="kpiUtile">€ 0,00</strong></div>
+      <div class="card kpi"><span>Cassa calcolata</span><strong id="kpiCassa">&euro; 0,00</strong></div>
+      <div class="card kpi"><span>Differenza</span><strong id="kpiDifferenza">&euro; 0,00</strong></div>
+      <div class="card kpi"><span>Spese casa</span><strong id="kpiCasa">&euro; 0,00</strong></div>
+      <div class="card kpi"><span>Personali/Lavoro</span><strong id="kpiPersonali">&euro; 0,00</strong></div>
+      <div class="card kpi"><span>Salvadanaio</span><strong id="kpiSalvadanaio">&euro; 0,00</strong></div>
+      <div class="card kpi"><span>Sfizi</span><strong id="kpiSfizi">&euro; 0,00</strong></div>
     </section>
 
-    <!-- Form -->
     <section class="input-panel">
       <div class="form-row">
         <select id="fTipo"><option value="entrata">Entrata</option><option value="uscita">Uscita</option></select>
         <select id="fCat"><option value="">Caricamento...</option></select>
       </div>
       <div class="form-row">
-        <select id="fMembro"><option value="Capo">Capo</option><option value="Anna">Anna</option></select>
-        <input type="number" id="fImporto" placeholder="€ Importo">
+        <select id="fMembro"><option value="Arcangelo">Arcangelo</option><option value="Anna">Anna</option></select>
+        <input type="number" id="fImporto" min="0.01" step="0.01" placeholder="Importo">
       </div>
       <div class="form-options">
         <label><input type="checkbox" id="fRicorrente"> Ricorrente</label>
-        <label><input type="checkbox" id="fReale" checked> ✅ Reale</label>
+        <label><input type="checkbox" id="fReale" checked> Reale</label>
       </div>
-      <button id="btnAggiungi" class="btn-primary"> Aggiungi Movimento</button>
+      <button id="btnAggiungi" class="btn-primary">Aggiungi movimento</button>
+      <button id="btnCopiaRicorrenti" class="btn-secondary secondary-action">Copia ricorrenti dal mese precedente</button>
     </section>
 
-    <!-- Report & Grafici -->
+    <section class="summary-panel">
+      <div class="summary-grid">
+        <div>
+          <h2>Calcolo automatico</h2>
+          <ul id="calculationList"></ul>
+        </div>
+        <div>
+          <h2>Riconciliazione</h2>
+          <div class="cash-check">
+            <label>Cassa iniziale mese<input type="number" id="cashStart" step="0.01" placeholder="0,00"></label>
+            <label>Cassa contata adesso<input type="number" id="cashCounted" step="0.01" placeholder="0,00"></label>
+            <button id="btnSaveCash" class="btn-secondary">Aggiorna controllo</button>
+          </div>
+          <div id="reconcileList"></div>
+        </div>
+      </div>
+    </section>
+
     <section class="charts-section">
-      <h2>📊 Report</h2>
+      <h2>Report e impostazioni</h2>
       <div class="chart-tabs">
         <button class="tab-btn active" onclick="showTab('weekly')">Settimanale</button>
         <button class="tab-btn" onclick="showTab('monthly')">Mensile</button>
-        <button class="tab-btn" onclick="showTab('settings')">⚙️ Categorie</button>
+        <button class="tab-btn" onclick="showTab('settings')">Categorie</button>
       </div>
-      
+
       <div id="weekly-tab" class="tab-content active">
-        <div class="chart-box"><canvas id="weeklyChart"></canvas></div>
+        <canvas id="weeklyChart" height="200"></canvas>
       </div>
+
       <div id="monthly-tab" class="tab-content">
-        <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+        <div class="date-filter">
+          <input type="month" id="filterMonth">
+          <button onclick="updateMonthlyChart()" class="btn-small">Filtra</button>
+        </div>
+        <canvas id="monthlyChart" height="250"></canvas>
       </div>
+
       <div id="settings-tab" class="tab-content">
-        <h3>⚙️ Gestione Categorie</h3>
+        <h3>Gestione categorie</h3>
+        <p style="font-size:0.8rem; color:#666">Aggiungi o rimuovi voci dal menu.</p>
+
         <div class="category-manager">
-          <input type="text" id="newCatName" placeholder="Nome (es. Palestra)">
-          <select id="newCatType"><option value="entrata">Entrata</option><option value="uscita">Uscita</option></select>
+          <input type="text" id="newCatName" placeholder="Nome categoria">
+          <select id="newCatType">
+            <option value="entrata">Entrata</option>
+            <option value="uscita">Uscita</option>
+          </select>
           <button onclick="addNewCategory()" class="btn-small">+</button>
         </div>
-        <div id="categoriesList" class="cat-list"></div>
 
-        <h3 style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;">🤖 Telegram</h3>
-        <button onclick="testTelegram()" class="btn-secondary">Test Notifica</button>
+        <div id="categoriesList" class="cat-list">Caricamento...</div>
+
+        <h3 style="margin-top:20px; border-top:1px solid #eee; padding-top:10px;">Telegram</h3>
+        <p style="font-size:0.8rem; color:#666">Invio disattivato finche non viene spostato su backend.</p>
+        <button onclick="testTelegram()" class="btn-secondary">Test notifica</button>
       </div>
     </section>
 
-    <!-- Movimenti -->
     <section class="table-panel desktop-only">
-      <h2>📋 Movimenti</h2>
+      <h2>Movimenti</h2>
       <table id="transTable">
-        <thead><tr><th>Tipo</th><th>Categoria</th><th>Chi</th><th>Importo</th><th>Stato</th><th>Azioni</th></tr></thead>
+        <thead>
+          <tr><th>Tipo</th><th>Categoria</th><th>Classe</th><th>Chi</th><th>Importo</th><th>Ric.</th><th>Stato</th><th>Azioni</th></tr>
+        </thead>
         <tbody></tbody>
       </table>
     </section>
 
     <section class="mobile-only" id="mobile-list">
-      <h2>📋 Movimenti</h2>
+      <h2>Movimenti</h2>
       <div id="mobile-container"></div>
     </section>
 
-    <!-- Footer -->
     <section class="rollover-panel">
       <ul id="rolloverList"></ul>
-      <button id="btnExport" class="btn-secondary" style="width:100%">📥 Esporta CSV</button>
+      <div class="import-row">
+        <input type="file" id="csvImport" accept=".csv,text/csv">
+        <button id="btnImport" class="btn-secondary">Importa CSV</button>
+      </div>
+      <button id="btnExport" class="btn-secondary" style="width:100%">Esporta CSV</button>
     </section>
   </main>
 
   <div class="mobile-spacer"></div>
 
-  <!-- Script Principali -->
-  <script type="module" src="./modules/config.js?v=50"></script>
-  <script type="module" src="./modules/storage.js?v=50"></script>
-  <script type="module" src="./modules/db-manager.js?v=50"></script>
-  <script type="module" src="./modules/ui.js?v=50"></script>
-  
+  <script type="module" src="./modules/ui.js?v=29"></script>
+  <script type="module" src="./modules/db-manager.js?v=29"></script>
+
   <script>
-    window.showTab = (t) => {
-      document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-      document.getElementById(t+'-tab').classList.add('active');
-      document.querySelectorAll('.tab-btn')[['weekly','monthly','settings'].indexOf(t)].classList.add('active');
+    window.showTab = function(tabName) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+
+      document.getElementById(tabName + "-tab").classList.add("active");
+      const btns = document.querySelectorAll(".tab-btn");
+      if (tabName === "weekly") btns[0].classList.add("active");
+      if (tabName === "monthly") btns[1].classList.add("active");
+      if (tabName === "settings") btns[2].classList.add("active");
     };
   </script>
 </body>
