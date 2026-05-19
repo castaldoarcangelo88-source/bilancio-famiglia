@@ -1,52 +1,132 @@
-import { supabase } from "./storage.js";
 import { CONFIG } from "./config.js";
+import { CATEGORIES } from "./data-model.js";
 
+const LOCAL_CAT_KEY = "bilancio_categories_test";
+const REMOVED_CATEGORIES = ["Conguaglio", "Prestito Anna", "Prestito da Anna", "Rimborso Anna"];
+
+function isLocalTest() {
+  return localStorage.getItem("bilancio_test_admin") === "true";
+}
+
+function defaultCategories() {
+  return Object.entries(CATEGORIES).flatMap(([type, groups]) => {
+    return [...groups.ricorrenti, ...groups.una_tantum].map(name => ({
+      id: `${type}-${name}`,
+      name,
+      type,
+      is_recurring: groups.ricorrenti.includes(name)
+    }));
+  }).filter((cat, index, list) => {
+    return list.findIndex(other => other.type === cat.type && other.name === cat.name) === index;
+  });
+}
+
+function readLocalCategories() {
+  const raw = localStorage.getItem(LOCAL_CAT_KEY);
+  if (raw) {
+    const saved = JSON.parse(raw).filter(cat => !REMOVED_CATEGORIES.includes(cat.name));
+    const merged = [...saved];
+    defaultCategories().forEach(cat => {
+      const exists = merged.some(item => item.type === cat.type && item.name === cat.name);
+      if (!exists) merged.push(cat);
+    });
+    writeLocalCategories(merged);
+    return merged;
+  }
+
+  const seed = defaultCategories();
+  localStorage.setItem(LOCAL_CAT_KEY, JSON.stringify(seed));
+  return seed;
+}
+
+function writeLocalCategories(categories) {
+  localStorage.setItem(LOCAL_CAT_KEY, JSON.stringify(categories));
+}
+
+// --- CATEGORIE ---
 export async function loadCategoriesFromDB() {
-  const { data } = await supabase.from("categories").select("*").order("name");
-  return data || [];
+  if (isLocalTest()) return readLocalCategories();
+
+  const { supabase } = await import("./supabase-client.js");
+  const { data, error } = await supabase.from("categories").select("*").order("name");
+  if (error) {
+    console.error("Errore caricamento categorie:", error);
+    return defaultCategories();
+  }
+  const filtered = (data || []).filter(cat => !REMOVED_CATEGORIES.includes(cat.name));
+  const merged = [...filtered];
+  defaultCategories().forEach(cat => {
+    const exists = merged.some(item => item.type === cat.type && item.name === cat.name);
+    if (!exists) merged.push(cat);
+  });
+  return merged;
 }
 
 export async function addCategoryToDB(name, type) {
-  await supabase.from("categories").insert([{ name, type, is_recurring: false }]);
+  const cleanName = name.trim();
+  if (!cleanName) return null;
+
+  if (isLocalTest()) {
+    const categories = readLocalCategories();
+    const saved = { id: crypto.randomUUID(), name: cleanName, type, is_recurring: false };
+    categories.push(saved);
+    writeLocalCategories(categories);
+    return saved;
+  }
+
+  const { supabase } = await import("./supabase-client.js");
+  const { data, error } = await supabase
+    .from("categories")
+    .insert([{ name: cleanName, type, is_recurring: false }])
+    .select();
+
+  if (error) throw error;
+  return data ? data[0] : null;
 }
 
 export async function deleteCategoryFromDB(id) {
-  await supabase.from("categories").delete().eq("id", id);
+  if (isLocalTest()) {
+    writeLocalCategories(readLocalCategories().filter(c => c.id !== id));
+    return;
+  }
+
+  const { supabase } = await import("./supabase-client.js");
+  const { error } = await supabase.from("categories").delete().eq("id", id);
+  if (error) throw error;
 }
 
-export async function sendTelegramMessage(msg) {
-  const token = CONFIG.TELEGRAM_BOT_TOKEN;
-  const chatId = CONFIG.TELEGRAM_CHAT_ID;
-  if (!token || token.includes("INSERISCI")) return alert("Configura il BOT_TOKEN");
+// --- TELEGRAM ---
+export async function sendTelegramMessage() {
+  if (!CONFIG.TELEGRAM_BOT_TOKEN) {
+    alert("Telegram disattivato: il Bot Token non deve stare nel browser. Usa una funzione server/Supabase Edge Function.");
+    return;
+  }
 
-  const url = `https://api.telegram.org/bot${token}/sendMessage`;
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: "HTML" })
-    });
-    const data = await response.json();
-    if (data.ok) alert("✅ Inviato!");
-    else alert("❌ Errore: " + data.description);
-  } catch (e) { alert("❌ Errore connessione"); }
+  alert("Telegram va inviato da backend, non dal frontend.");
 }
 
-export function renderChart(canvasId, labels, dataIn, dataOut) {
+// --- GRAFICI ---
+export function renderBarChart(canvasId, labels, dataEntrate, dataUscite) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
-  const existing = Chart.getChart(canvasId);
-  if (existing) existing.destroy();
+
+  const oldChart = Chart.getChart(canvasId);
+  if (oldChart) oldChart.destroy();
 
   new Chart(ctx, {
-    type: 'bar',
+    type: "bar",
     data: {
-      labels: labels,
+      labels,
       datasets: [
-        { label: 'Entrate', data: dataIn, backgroundColor: '#10b981', borderRadius: 6 },
-        { label: 'Uscite', data: dataOut, backgroundColor: '#ef4444', borderRadius: 6 }
+        { label: "Entrate", data: dataEntrate, backgroundColor: "#10b981", borderRadius: 5 },
+        { label: "Uscite", data: dataUscite, backgroundColor: "#ef4444", borderRadius: 5 }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } },
+      scales: { y: { beginAtZero: true } }
+    }
   });
 }

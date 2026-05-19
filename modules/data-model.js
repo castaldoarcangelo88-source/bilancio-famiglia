@@ -1,53 +1,91 @@
-export const MEMBERS = ["Capo", "Anna"];
+export const MEMBERS = ["Arcangelo", "Anna"];
+
+export const HOUSE_CATEGORIES = [
+  "Mutuo/Affitto",
+  "Bollette",
+  "Spesa alimentare",
+  "Assicurazioni",
+  "Istruzione",
+  "Trasporti",
+  "Abbonamenti",
+  "Piscina",
+  "Danza",
+  "Dottoresse",
+  "Casa"
+];
+
+export const WORK_CATEGORIES = [
+  "Lavoro",
+  "Trasporti lavoro",
+  "Materiale lavoro",
+  "Spese lavoro"
+];
+
+export const SAVINGS_CATEGORIES = ["Salvadanaio", "Risparmio"];
+export const SAVINGS_WITHDRAWAL_CATEGORIES = ["Prelievo salvadanaio", "Rientro salvadanaio"];
+export const FUN_CATEGORIES = ["Sfizi", "Svago"];
+
+export const PERSONAL_CATEGORIES = [
+  "Prelievo personale",
+  "Sanita",
+  "Manutenzioni",
+  "Viaggi",
+  "Regali",
+  "Investimenti una tantum",
+  "Altro"
+];
 
 export const CATEGORIES = {
   entrata: {
-    ricorrenti: ["Stipendio", "Affitti/Rendite", "Bonus mensili", "Rimborsi"],
-    una_tantum: ["Bonus straordinari", "Vendite beni", "Regali ricevuti", "Altro"]
+    ricorrenti: ["Stipendio", "Apporto familiare", "Affitti/Rendite", "Bonus mensili", "Rimborsi"],
+    una_tantum: ["Bonus straordinari", "Vendite beni", "Regali ricevuti", "Prelievo salvadanaio", "Altro"]
   },
   uscita: {
     ricorrenti: [
-      "Mutuo/Affitto", 
-      "Bollette", 
-      "Spesa alimentare", 
-      "Assicurazioni", 
-      "Istruzione", 
-      "Trasporti", 
+      "Mutuo/Affitto",
+      "Bollette",
+      "Spesa alimentare",
+      "Assicurazioni",
+      "Istruzione",
+      "Trasporti",
       "Abbonamenti",
       "Piscina",
       "Danza",
       "Dottoresse",
-      "Svago",
-      "Casa"
+      "Casa",
+      "Lavoro"
     ],
     una_tantum: [
-      "Sanità", 
-      "Manutenzioni", 
-      "Viaggi", 
-      "Regali", 
-      "Investimenti una tantum", 
-      "Prelivo personale",
+      "Sanita",
+      "Manutenzioni",
+      "Viaggi",
+      "Regali",
+      "Investimenti una tantum",
+      "Prelievo personale",
+      "Salvadanaio",
+      "Sfizi",
+      "Spese lavoro",
       "Dottoresse",
       "Svago",
-      "Casa"
+      "Casa",
+      "Altro"
     ]
   }
 };
 
-export const QUOTA_BASELINA = 600;
 export const SOGLIA_ALLARME_CASSA = 500;
 export const STORAGE_KEY = "famiglia_finance_v1";
 
 export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, reale) {
   return {
-    mese, 
-    tipo, 
-    cat, 
-    membro, 
+    mese,
+    tipo,
+    cat,
+    membro,
     importo: parseFloat(importo),
-    ricorrente: ricorrente || false, 
-    reale: reale || false, 
-    confermato: reale || false,
+    ricorrente: Boolean(ricorrente),
+    reale: Boolean(reale),
+    confermato: Boolean(reale),
     created_at: new Date().toISOString()
   };
 }
