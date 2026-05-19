@@ -46,7 +46,7 @@ h1 { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
   border-radius: var(--radius); box-shadow: var(--shadow); 
 }
 .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-select, input[type="number"] { 
+select, input[type="number"], input[type="text"] { 
   width: 100%; padding: 12px; border: 1px solid #e5e7eb; 
   border-radius: 8px; font-size: 1rem; background: #f9fafb; 
 }
@@ -98,6 +98,8 @@ select, input[type="number"] {
 .cash-check { display: grid; gap: 10px; margin-bottom: 12px; }
 .cash-check label { font-size: 0.85rem; color: var(--gray); font-weight: 700; }
 .cash-check input { margin-top: 4px; }
+.helper-text { font-size: 0.85rem; color: var(--gray); margin-bottom: 10px; }
+.status-msg { min-height: 18px; font-size: 0.85rem; font-weight: 700; color: var(--success); }
 
 .charts-section { 
   margin: 0 16px 20px; background: var(--card); padding: 16px; 

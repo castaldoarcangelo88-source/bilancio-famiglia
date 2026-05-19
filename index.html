@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Bilancio Famiglia</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css?v=29">
+  <link rel="stylesheet" href="style.css?v=30">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -58,10 +58,12 @@
         </div>
         <div>
           <h2>Riconciliazione</h2>
+          <p class="helper-text">Conta i soldi reali disponibili e confrontali con quelli calcolati dall'app.</p>
           <div class="cash-check">
-            <label>Cassa iniziale mese<input type="number" id="cashStart" step="0.01" placeholder="0,00"></label>
-            <label>Cassa contata adesso<input type="number" id="cashCounted" step="0.01" placeholder="0,00"></label>
+            <label>Cassa iniziale mese<input type="text" id="cashStart" inputmode="decimal" placeholder="0,00"></label>
+            <label>Cassa contata adesso<input type="text" id="cashCounted" inputmode="decimal" placeholder="0,00"></label>
             <button id="btnSaveCash" class="btn-secondary">Aggiorna controllo</button>
+            <div id="cashStatus" class="status-msg"></div>
           </div>
           <div id="reconcileList"></div>
         </div>
@@ -136,8 +138,8 @@
 
   <div class="mobile-spacer"></div>
 
-  <script type="module" src="./modules/ui.js?v=29"></script>
-  <script type="module" src="./modules/db-manager.js?v=29"></script>
+  <script type="module" src="./modules/ui.js?v=30"></script>
+  <script type="module" src="./modules/db-manager.js?v=30"></script>
 
   <script>
     window.showTab = function(tabName) {
