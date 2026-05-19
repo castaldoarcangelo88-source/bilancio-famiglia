@@ -107,13 +107,15 @@ export async function sendTelegramMessage() {
 
 // --- GRAFICI ---
 export function renderBarChart(canvasId, labels, dataEntrate, dataUscite) {
+  if (!window.Chart) return;
+
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
 
-  const oldChart = Chart.getChart(canvasId);
+  const oldChart = window.Chart.getChart(canvasId);
   if (oldChart) oldChart.destroy();
 
-  new Chart(ctx, {
+  new window.Chart(ctx, {
     type: "bar",
     data: {
       labels,

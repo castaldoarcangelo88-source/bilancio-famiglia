@@ -36,10 +36,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateMonthLabel();
     syncFilterMonth();
     syncCashInputs();
+    setupEvents();
     await ensureRecurringForMonth(window.currentMonth);
     render();
     renderCharts();
-    setupEvents();
     clearAlert();
   } catch (error) {
     console.error(error);
@@ -95,6 +95,14 @@ function loadCashChecks() {
 
 function saveCashChecks() {
   localStorage.setItem("bilancio_cash_checks", JSON.stringify(cashChecks));
+}
+
+function normalizeMoneyInput(value) {
+  const raw = String(value ?? "").trim();
+  const text = raw.includes(",") ? raw.replace(/\./g, "").replace(",", ".") : raw;
+  if (!text) return "";
+  const number = Number(text);
+  return Number.isFinite(number) ? String(number) : "";
 }
 
 function currentCashCheck() {
@@ -249,15 +257,36 @@ function syncFilterMonth() {
 }
 
 function setupEvents() {
+  if (setupEvents.done) return;
+  setupEvents.done = true;
+
   document.getElementById("fTipo").addEventListener("change", updateCategorySelect);
-  document.getElementById("btnSaveCash").onclick = () => {
+  document.getElementById("cashStart").addEventListener("input", updateCashPreview);
+  document.getElementById("cashCounted").addEventListener("input", updateCashPreview);
+  document.getElementById("btnSaveCash").addEventListener("click", saveCashControl);
+
+  function updateCashPreview() {
     cashChecks[window.currentMonth] = {
-      iniziale: document.getElementById("cashStart").value,
-      contata: document.getElementById("cashCounted").value
+      iniziale: normalizeMoneyInput(document.getElementById("cashStart").value),
+      contata: normalizeMoneyInput(document.getElementById("cashCounted").value)
+    };
+    render();
+  }
+
+  function saveCashControl() {
+    cashChecks[window.currentMonth] = {
+      iniziale: normalizeMoneyInput(document.getElementById("cashStart").value),
+      contata: normalizeMoneyInput(document.getElementById("cashCounted").value)
     };
     saveCashChecks();
+    syncCashInputs();
     render();
-  };
+    const status = document.getElementById("cashStatus");
+    status.textContent = "Controllo aggiornato";
+    setTimeout(() => {
+      if (status.textContent === "Controllo aggiornato") status.textContent = "";
+    }, 2500);
+  }
 
   document.getElementById("btnAggiungi").addEventListener("click", async () => {
     const tipo = document.getElementById("fTipo").value;
