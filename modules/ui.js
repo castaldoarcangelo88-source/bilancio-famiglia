@@ -171,6 +171,7 @@ function setupEvents() {
     const importo = parseFloat(document.getElementById("fImporto").value);
     const ricorrente = document.getElementById("fRicorrente").checked;
     const reale = document.getElementById("fReale").checked;
+    const privata = document.getElementById("fPrivata").checked;
 
     if (!cat) {
       alert("Inserisci una descrizione.");
@@ -183,7 +184,7 @@ function setupEvents() {
     }
 
     try {
-      const t = createTransaction(window.currentMonth, tipo, cat, membro, importo, ricorrente, reale);
+      const t = createTransaction(window.currentMonth, tipo, cat, membro, importo, ricorrente, reale, privata);
       const saved = await saveTransaction(t);
 
       if (saved) {
@@ -191,6 +192,7 @@ function setupEvents() {
         render();
         document.getElementById("fCat").value = "";
         document.getElementById("fImporto").value = "";
+        document.getElementById("fPrivata").checked = false;
       }
     } catch (error) {
       console.error(error);
@@ -233,7 +235,17 @@ async function copyRecurringFromPreviousMonth(targetMonth, showMessage) {
 
   try {
     for (const item of toCopy) {
-      const copied = createTransaction(targetMonth, item.tipo, item.cat, item.membro, item.importo, true, false);
+      const copied = createTransaction(
+        targetMonth,
+        item.tipo,
+        item.cat,
+        item.membro,
+        item.importo,
+        true,
+        false,
+        item.visibility === "private",
+        item.owner_id || null
+      );
       const saved = await saveTransaction(copied);
       if (saved) transactions.unshift(saved);
     }
@@ -275,7 +287,7 @@ function renderTable(list) {
   if (!tbody) return;
 
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="7">Nessun movimento per questo mese.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8">Nessun movimento per questo mese.</td></tr>';
     return;
   }
 
@@ -285,6 +297,7 @@ function renderTable(list) {
       <td>${escapeHTML(t.cat)}</td>
       <td>${escapeHTML(t.membro)}</td>
       <td>${fmt(t.importo)}</td>
+      <td>${t.visibility === "private" ? "Privata" : "Condivisa"}</td>
       <td>${t.ricorrente ? "Si" : "No"}</td>
       <td><span class="badge ${t.confermato ? "real" : "atteso"}">${t.confermato ? "Reale" : "Atteso"}</span></td>
       <td>
@@ -307,7 +320,7 @@ function renderMobileList(list) {
     <div class="m-card ${escapeHTML(t.tipo)}">
       <div class="m-info">
         <h4>${escapeHTML(t.cat)} <small>(${escapeHTML(t.membro)})</small></h4>
-        <p>${movementLabel(t.tipo)} - ${t.ricorrente ? "Ricorrente" : "Una tantum"} - ${t.confermato ? "Reale" : "Atteso"}</p>
+        <p>${movementLabel(t.tipo)} - ${t.visibility === "private" ? "Privata" : "Condivisa"} - ${t.ricorrente ? "Ricorrente" : "Una tantum"} - ${t.confermato ? "Reale" : "Atteso"}</p>
         <div class="m-actions">
           <button class="m-btn conf" onclick="window.toggle('${escapeHTML(t.id)}')">${t.confermato ? "Annulla" : "Conferma"}</button>
           <button class="m-btn del" onclick="window.del('${escapeHTML(t.id)}')">Elimina</button>
@@ -411,7 +424,8 @@ async function importCSV() {
         row.membro,
         importo,
         toBool(row.ricorrente),
-        toBool(row.reale) || toBool(row.confermato)
+        toBool(row.reale) || toBool(row.confermato),
+        row.visibility === "private"
       );
 
       const saved = await saveTransaction(transaction);

@@ -37,6 +37,8 @@ function tx(mese, tipo, cat, membro, importo, ricorrente, reale) {
     ricorrente,
     reale,
     confermato: reale,
+    visibility: "shared",
+    owner_id: null,
     created_at: new Date().toISOString()
   };
 }
@@ -108,7 +110,14 @@ export async function saveTransaction(t) {
   }
 
   const { supabase } = await import("./supabase-client.js");
+  const { data: userData } = await supabase.auth.getUser();
   const { id, ...dataToInsert } = t;
+  if (dataToInsert.visibility === "private") {
+    dataToInsert.owner_id = userData?.user?.id ?? null;
+  } else {
+    dataToInsert.visibility = "shared";
+    dataToInsert.owner_id = null;
+  }
   const { data, error } = await supabase.from("transactions").insert([dataToInsert]).select();
   if (error) throw error;
   return data ? data[0] : null;
@@ -189,7 +198,7 @@ function csvValue(value) {
 }
 
 export function exportCSV(trans) {
-  const header = "id,mese,tipo,cat,membro,importo,ricorrente,reale,confermato,created_at";
+  const header = "id,mese,tipo,cat,membro,importo,visibility,owner_id,ricorrente,reale,confermato,created_at";
   const rows = trans.map(t => [
     t.id,
     t.mese,
@@ -197,6 +206,8 @@ export function exportCSV(trans) {
     t.cat,
     t.membro,
     t.importo,
+    t.visibility || "shared",
+    t.owner_id || "",
     t.ricorrente,
     t.reale,
     t.confermato,

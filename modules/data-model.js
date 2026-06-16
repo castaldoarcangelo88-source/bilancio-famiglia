@@ -76,7 +76,7 @@ export const CATEGORIES = {
 export const SOGLIA_ALLARME_CASSA = 500;
 export const STORAGE_KEY = "famiglia_finance_v1";
 
-export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, reale) {
+export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, reale, privata = false, ownerId = null) {
   return {
     mese,
     tipo,
@@ -86,6 +86,8 @@ export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, 
     ricorrente: Boolean(ricorrente),
     reale: Boolean(reale),
     confermato: Boolean(reale),
+    visibility: privata ? "private" : "shared",
+    owner_id: privata ? ownerId : null,
     created_at: new Date().toISOString()
   };
 }
