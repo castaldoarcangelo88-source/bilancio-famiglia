@@ -23,6 +23,15 @@ h1 { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
   border: none; background: none; cursor: pointer; padding: 4px 10px; font-weight: bold; 
 }
 #currentMonth { font-weight: 700; font-size: 0.95rem; min-width: 70px; text-align: center; }
+.btn-logout {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
 /* === ALERT BOX === */
 #alert-box { 
@@ -191,6 +200,8 @@ th { background: #f9fafb; font-weight: 600; }
   .form-row { flex-direction: column; }
   .import-row { flex-direction: column; }
   .import-row button { width: 100%; }
+  header { gap: 8px; }
+  .btn-logout { padding: 7px 8px; }
 }
 @media (min-width: 769px) {
   .mobile-only { display: none; }

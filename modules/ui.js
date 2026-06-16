@@ -202,9 +202,19 @@ function setupEvents() {
 
   document.getElementById("prevMonth").onclick = () => shiftMonth(-1);
   document.getElementById("nextMonth").onclick = () => shiftMonth(1);
+  document.getElementById("btnLogout").onclick = logout;
   document.getElementById("btnCopiaRicorrenti").onclick = () => copyRecurringFromPreviousMonth(window.currentMonth, true);
   document.getElementById("btnImport").onclick = importCSV;
   document.getElementById("btnExport").onclick = () => exportCSV(transactions);
+}
+
+async function logout() {
+  try {
+    localStorage.removeItem("bilancio_test_admin");
+    await supabase.auth.signOut();
+  } finally {
+    window.location.href = "login.html";
+  }
 }
 
 async function ensureRecurringForMonth(month) {
