@@ -31,6 +31,7 @@ h1 { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
   padding: 8px 10px;
   font-weight: 700;
   cursor: pointer;
+  min-width: 58px;
 }
 
 /* === ALERT BOX === */
@@ -201,7 +202,14 @@ th { background: #f9fafb; font-weight: 600; }
   .import-row { flex-direction: column; }
   .import-row button { width: 100%; }
   header { gap: 8px; }
-  .btn-logout { padding: 7px 8px; }
+  .btn-logout {
+    position: fixed;
+    right: 14px;
+    bottom: 14px;
+    z-index: 200;
+    padding: 11px 14px;
+    box-shadow: var(--shadow);
+  }
 }
 @media (min-width: 769px) {
   .mobile-only { display: none; }

@@ -112,7 +112,8 @@ export async function saveTransaction(t) {
   const { supabase } = await import("./supabase-client.js");
   const { data: userData } = await supabase.auth.getUser();
   const { id, ...dataToInsert } = t;
-  if (dataToInsert.visibility === "private") {
+  const canCreatePrivate = userData?.user?.email === "castaldoarcangelo88@gmail.com";
+  if (dataToInsert.visibility === "private" && canCreatePrivate) {
     dataToInsert.owner_id = userData?.user?.id ?? null;
   } else {
     dataToInsert.visibility = "shared";

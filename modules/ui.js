@@ -8,6 +8,7 @@ import { supabase } from "./supabase-client.js";
 window.currentMonth = monthKeyFromDate(new Date());
 let transactions = [];
 let cashChecks = {};
+let currentUserEmail = "";
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -16,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "login.html";
       return;
     }
+    currentUserEmail = data.session.user?.email || "";
 
     setAlert("Caricamento dati...", "info");
     transactions = await loadTransactions();
@@ -25,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     syncFilterMonth();
     syncCashInputs();
     setupEvents();
+    setupPrivateOption();
     await ensureRecurringForMonth(window.currentMonth);
     render();
     clearAlert();
@@ -41,6 +44,18 @@ function escapeHTML(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function setupPrivateOption() {
+  const privateOption = document.getElementById("fPrivata")?.closest("label");
+  const privateCheckbox = document.getElementById("fPrivata");
+  const canUsePrivate = currentUserEmail === "castaldoarcangelo88@gmail.com";
+
+  if (!privateOption || !privateCheckbox) return;
+
+  privateCheckbox.checked = false;
+  privateCheckbox.disabled = !canUsePrivate;
+  privateOption.style.display = canUsePrivate ? "" : "none";
 }
 
 function setAlert(message, type = "danger") {
@@ -171,7 +186,7 @@ function setupEvents() {
     const importo = parseFloat(document.getElementById("fImporto").value);
     const ricorrente = document.getElementById("fRicorrente").checked;
     const reale = document.getElementById("fReale").checked;
-    const privata = document.getElementById("fPrivata").checked;
+    const privata = currentUserEmail === "castaldoarcangelo88@gmail.com" && document.getElementById("fPrivata").checked;
 
     if (!cat) {
       alert("Inserisci una descrizione.");
