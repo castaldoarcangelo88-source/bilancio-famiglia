@@ -116,12 +116,18 @@ export async function saveTransaction(t) {
   if (dataToInsert.visibility === "private" && canCreatePrivate) {
     dataToInsert.owner_id = userData?.user?.id ?? null;
   } else {
-    dataToInsert.visibility = "shared";
-    dataToInsert.owner_id = null;
+    delete dataToInsert.visibility;
+    delete dataToInsert.owner_id;
   }
   const { data, error } = await supabase.from("transactions").insert([dataToInsert]).select();
-  if (error) throw error;
-  return data ? data[0] : null;
+  if (error) {
+    if (t.visibility === "private") {
+      throw new Error("Transazione privata non salvata: esegui prima lo SQL aggiornato su Supabase.");
+    }
+    throw error;
+  }
+  const saved = data ? data[0] : null;
+  return saved ? { visibility: "shared", owner_id: null, ...saved } : null;
 }
 
 export async function updateTransaction(id, updates) {

@@ -211,7 +211,7 @@ function setupEvents() {
       }
     } catch (error) {
       console.error(error);
-      alert("Movimento non salvato. Controlla connessione e permessi Supabase.");
+      alert(`Movimento non salvato: ${error.message || "controlla connessione e permessi Supabase."}`);
     }
   });
 
