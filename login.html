@@ -4,58 +4,126 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Bilancio Famiglia</title>
-  <link rel="stylesheet" href="style.css?v=26">
+  <link rel="stylesheet" href="style.css?v=32">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (new URLSearchParams(location.search).has("resetTest")) {
+      ["bilancio_test_admin", "bilancio_transactions_test", "bilancio_transactions_test_version", "bilancio_categories_test", "bilancio_cash_checks"].forEach(key => localStorage.removeItem(key));
+      history.replaceState(null, "", location.pathname);
+    }
+  </script>
   <style>
     body { background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 16px; }
     .login-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: var(--shadow); width: 100%; max-width: 350px; text-align: center; }
     .login-box h2 { color: var(--primary); margin-bottom: 1.5rem; }
     .login-box input { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
     .btn-login { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-    .btn-signup { width: 100%; padding: 12px; background: transparent; color: var(--gray); border: 1px solid #ddd; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+    .login-note { color: var(--gray); font-size: 0.85rem; line-height: 1.4; margin-top: 12px; }
     #error-msg { color: var(--danger); font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+    #password-setup { display: none; }
   </style>
 </head>
 <body>
   <div class="login-box">
     <h2>Bilancio Famiglia</h2>
     <div id="error-msg"></div>
-    <input type="text" id="email" placeholder="Email o utente test" autocomplete="username">
-    <input type="password" id="password" placeholder="Password" autocomplete="current-password">
-    <button class="btn-login" onclick="handleAuth('login')">Accedi</button>
-    <button class="btn-signup" onclick="handleAuth('signup')">Registrati</button>
+
+    <div id="login-form">
+      <input type="email" id="email" placeholder="Email" autocomplete="username">
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+      <button class="btn-login" onclick="handleAuth()">Accedi</button>
+      <p class="login-note">Accesso consentito solo agli utenti invitati e autorizzati.</p>
+    </div>
+
+    <div id="password-setup">
+      <input type="password" id="newPassword" placeholder="Nuova password" autocomplete="new-password">
+      <input type="password" id="confirmPassword" placeholder="Ripeti password" autocomplete="new-password">
+      <button class="btn-login" onclick="setInvitedPassword()">Imposta password</button>
+      <p class="login-note">Invito accettato. Imposta una password per accedere all'app.</p>
+    </div>
   </div>
 
   <script type="module">
     import { supabase } from "./modules/supabase-client.js";
 
-    window.handleAuth = async (type) => {
+    const errEl = document.getElementById("error-msg");
+    const loginForm = document.getElementById("login-form");
+    const passwordSetup = document.getElementById("password-setup");
+
+    function showError(message) {
+      errEl.textContent = message;
+      errEl.style.display = "block";
+    }
+
+    function clearError() {
+      errEl.textContent = "";
+      errEl.style.display = "none";
+    }
+
+    function showPasswordSetup() {
+      loginForm.style.display = "none";
+      passwordSetup.style.display = "block";
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const authParams = new URLSearchParams(window.location.hash.slice(1));
+    const authType = authParams.get("type");
+    const hasAuthToken = authParams.has("access_token") || authParams.has("refresh_token");
+    const mustChangePassword =
+      searchParams.has("changePassword") ||
+      searchParams.has("code") ||
+      hasAuthToken ||
+      ["invite", "recovery", "signup"].includes(authType);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session && mustChangePassword) {
+      history.replaceState(null, "", location.pathname);
+      showPasswordSetup();
+    } else if (sessionData.session) {
+      window.location.href = "index.html";
+    } else if (mustChangePassword) {
+      showPasswordSetup();
+    }
+
+    window.handleAuth = async () => {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
-      const errEl = document.getElementById("error-msg");
 
-      errEl.style.display = "none";
-      errEl.textContent = "";
+      clearError();
 
       if (!email || !password) {
-        errEl.textContent = "Inserisci email e password";
-        errEl.style.display = "block";
+        showError("Inserisci email e password");
         return;
       }
 
-      if (email === "admin" && password === "admin123") {
-        localStorage.setItem("bilancio_test_admin", "true");
-        window.location.href = "index.html";
-        return;
-      }
-
-      const res = type === "login"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
+      const res = await supabase.auth.signInWithPassword({ email, password });
 
       if (res.error) {
-        errEl.textContent = res.error.message;
-        errEl.style.display = "block";
+        showError(res.error.message);
+      } else {
+        window.location.href = "index.html";
+      }
+    };
+
+    window.setInvitedPassword = async () => {
+      const password = document.getElementById("newPassword").value;
+      const confirm = document.getElementById("confirmPassword").value;
+
+      clearError();
+
+      if (!password || password.length < 6) {
+        showError("La password deve avere almeno 6 caratteri");
+        return;
+      }
+
+      if (password !== confirm) {
+        showError("Le password non coincidono");
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        showError(error.message);
       } else {
         window.location.href = "index.html";
       }

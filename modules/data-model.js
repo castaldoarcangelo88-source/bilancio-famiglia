@@ -1,4 +1,4 @@
-export const MEMBERS = ["Arcangelo", "Anna"];
+export const MEMBERS = ["Famiglia", "Arcangelo", "Anna", "Figlio 1", "Figlio 2", "Figlio 3"];
 
 export const HOUSE_CATEGORIES = [
   "Mutuo/Affitto",
@@ -80,7 +80,7 @@ export function createTransaction(mese, tipo, cat, membro, importo, ricorrente, 
   return {
     mese,
     tipo,
-    cat,
+    cat: String(cat || "").trim(),
     membro,
     importo: parseFloat(importo),
     ricorrente: Boolean(ricorrente),

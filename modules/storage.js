@@ -1,6 +1,7 @@
 const LOCAL_TX_KEY = "bilancio_transactions_test";
 const LOCAL_TX_VERSION_KEY = "bilancio_transactions_test_version";
 const LOCAL_TX_VERSION = "4";
+const LOCAL_CASH_KEY = "bilancio_cash_checks";
 
 function isLocalTest() {
   return localStorage.getItem("bilancio_test_admin") === "true";
@@ -66,6 +67,20 @@ function writeLocalTransactions(transactions) {
   localStorage.setItem(LOCAL_TX_KEY, JSON.stringify(transactions));
 }
 
+function readLocalCashChecks() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_CASH_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeLocalCashCheck(month, check) {
+  const checks = readLocalCashChecks();
+  checks[month] = check;
+  localStorage.setItem(LOCAL_CASH_KEY, JSON.stringify(checks));
+}
+
 export async function loadTransactions() {
   if (isLocalTest()) return readLocalTransactions();
 
@@ -120,6 +135,52 @@ export async function deleteTransaction(id) {
   const { supabase } = await import("./supabase-client.js");
   const { error } = await supabase.from("transactions").delete().eq("id", id);
   if (error) throw error;
+}
+
+export async function loadCashChecks() {
+  if (isLocalTest()) return readLocalCashChecks();
+
+  const { supabase } = await import("./supabase-client.js");
+  const { data, error } = await supabase
+    .from("cash_checks")
+    .select("mese,cassa_iniziale,cassa_contata");
+
+  if (error) {
+    console.warn("Tabella cash_checks non disponibile, uso salvataggio locale:", error.message);
+    return readLocalCashChecks();
+  }
+
+  return Object.fromEntries((data || []).map(row => [
+    row.mese,
+    {
+      iniziale: row.cassa_iniziale ?? "",
+      contata: row.cassa_contata ?? ""
+    }
+  ]));
+}
+
+export async function saveCashCheck(month, check) {
+  writeLocalCashCheck(month, check);
+
+  if (isLocalTest()) return;
+
+  const { supabase } = await import("./supabase-client.js");
+  const { data: userData } = await supabase.auth.getUser();
+  const payload = {
+    mese: month,
+    cassa_iniziale: Number(check.iniziale) || 0,
+    cassa_contata: check.contata === "" || check.contata == null ? null : Number(check.contata),
+    updated_by: userData?.user?.id ?? null,
+    updated_at: new Date().toISOString()
+  };
+
+  const { error } = await supabase
+    .from("cash_checks")
+    .upsert(payload, { onConflict: "mese" });
+
+  if (error) {
+    console.warn("Cash check non salvato su Supabase, resta locale:", error.message);
+  }
 }
 
 function csvValue(value) {

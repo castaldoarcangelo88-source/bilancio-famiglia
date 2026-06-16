@@ -1,45 +1,32 @@
 import { createTransaction, SOGLIA_ALLARME_CASSA } from "./data-model.js";
 import {
-  calcolaRiepilogo,
-  isFun,
-  isHouseExpense,
-  isPersonalExpense,
-  isSaving,
-  isSavingsWithdrawal,
-  isWorkExpense
+  calcolaRiepilogo
 } from "./logic.js";
-import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV } from "./storage.js";
-import { loadCategoriesFromDB, addCategoryToDB, deleteCategoryFromDB, sendTelegramMessage, renderBarChart } from "./db-manager.js";
+import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV, loadCashChecks, saveCashCheck } from "./storage.js";
 import { supabase } from "./supabase-client.js";
 
 window.currentMonth = monthKeyFromDate(new Date());
 let transactions = [];
-let allCategories = [];
 let cashChecks = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const isTestAdmin = localStorage.getItem("bilancio_test_admin") === "true";
     const { data } = await supabase.auth.getSession();
-    if (!data.session && !isTestAdmin) {
+    if (!data.session) {
       window.location.href = "login.html";
       return;
     }
 
     setAlert("Caricamento dati...", "info");
-    allCategories = await loadCategoriesFromDB();
     transactions = await loadTransactions();
-    cashChecks = loadCashChecks();
+    cashChecks = await loadCashChecks();
 
-    updateCategorySelect();
-    renderCategoriesList();
     updateMonthLabel();
     syncFilterMonth();
     syncCashInputs();
     setupEvents();
     await ensureRecurringForMonth(window.currentMonth);
     render();
-    renderCharts();
     clearAlert();
   } catch (error) {
     console.error(error);
@@ -75,26 +62,22 @@ function monthKeyFromDate(date) {
   return `${year}-${month}`;
 }
 
-function categoryClass(t) {
-  if (isHouseExpense(t)) return "Casa";
-  if (isWorkExpense(t)) return "Lavoro";
-  if (isSaving(t)) return "Salvadanaio";
-  if (isSavingsWithdrawal(t)) return "Prelievo salvadanaio";
-  if (isFun(t)) return "Sfizi";
-  if (isPersonalExpense(t)) return "Personale";
-  return "Entrata";
+function movementLabel(tipo) {
+  const labels = {
+    entrata: "Entrata",
+    uscita: "Uscita",
+    accantonamento: "Accantonamento salvadanaio",
+    prelievo: "Prelievo da salvadanaio"
+  };
+  return labels[tipo] || tipo;
 }
 
-function loadCashChecks() {
-  try {
-    return JSON.parse(localStorage.getItem("bilancio_cash_checks") || "{}");
-  } catch {
-    return {};
-  }
+function movementSign(tipo) {
+  return tipo === "entrata" || tipo === "prelievo" ? "+" : "-";
 }
 
-function saveCashChecks() {
-  localStorage.setItem("bilancio_cash_checks", JSON.stringify(cashChecks));
+function movementColor(tipo) {
+  return tipo === "entrata" || tipo === "prelievo" ? "var(--success)" : "var(--danger)";
 }
 
 function normalizeMoneyInput(value) {
@@ -117,110 +100,6 @@ function syncCashInputs() {
   if (counted) counted.value = check.contata ?? "";
 }
 
-function updateCategorySelect() {
-  const sel = document.getElementById("fCat");
-  const tipo = document.getElementById("fTipo").value;
-  const filtered = allCategories.filter(c => c.type === tipo);
-
-  if (!filtered.length) {
-    sel.innerHTML = '<option value="">Nessuna categoria</option>';
-    return;
-  }
-
-  sel.innerHTML = '<option value="">Categoria...</option>';
-  filtered.forEach(c => {
-    const option = document.createElement("option");
-    option.value = c.name;
-    option.textContent = c.name;
-    sel.appendChild(option);
-  });
-}
-
-function renderCategoriesList() {
-  const list = document.getElementById("categoriesList");
-  if (!list) return;
-
-  if (!allCategories.length) {
-    list.textContent = "Nessuna categoria configurata.";
-    return;
-  }
-
-  list.innerHTML = allCategories.map(c => `
-    <div class="cat-item">
-      <span>${escapeHTML(c.name)} (${c.type === "entrata" ? "entrata" : "uscita"})</span>
-      <button onclick="window.deleteCat('${escapeHTML(c.id)}')">Elimina</button>
-    </div>
-  `).join("");
-}
-
-window.addNewCategory = async function() {
-  const nameEl = document.getElementById("newCatName");
-  const name = nameEl.value.trim();
-  const type = document.getElementById("newCatType").value;
-
-  if (!name) {
-    alert("Inserisci un nome categoria.");
-    return;
-  }
-
-  try {
-    await addCategoryToDB(name, type);
-    allCategories = await loadCategoriesFromDB();
-    renderCategoriesList();
-    updateCategorySelect();
-    nameEl.value = "";
-  } catch (error) {
-    console.error(error);
-    alert("Categoria non salvata. Controlla i permessi Supabase.");
-  }
-};
-
-window.deleteCat = async function(id) {
-  if (!confirm("Eliminare questa categoria?")) return;
-
-  try {
-    await deleteCategoryFromDB(id);
-    allCategories = await loadCategoriesFromDB();
-    renderCategoriesList();
-    updateCategorySelect();
-  } catch (error) {
-    console.error(error);
-    alert("Categoria non eliminata. Controlla i permessi Supabase.");
-  }
-};
-
-window.testTelegram = function() {
-  sendTelegramMessage();
-};
-
-function renderCharts() {
-  const monthTrans = transactions.filter(t => t.mese === window.currentMonth);
-  const cats = [...new Set(monthTrans.map(t => t.cat))];
-
-  const entrate = cats.map(c => monthTrans
-    .filter(t => t.cat === c && t.tipo === "entrata")
-    .reduce((sum, t) => sum + Number(t.importo), 0));
-  const uscite = cats.map(c => monthTrans
-    .filter(t => t.cat === c && t.tipo === "uscita")
-    .reduce((sum, t) => sum + Number(t.importo), 0));
-
-  renderBarChart("monthlyChart", cats.length ? cats : ["Nessun dato"], cats.length ? entrate : [0], cats.length ? uscite : [0]);
-
-  const days = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
-  const weeklyEntrate = Array(7).fill(0);
-  const weeklyUscite = Array(7).fill(0);
-
-  monthTrans.forEach(t => {
-    const date = new Date(t.created_at);
-    if (Number.isNaN(date.getTime())) return;
-    const index = date.getDay() === 0 ? 6 : date.getDay() - 1;
-    if (t.tipo === "entrata") weeklyEntrate[index] += Number(t.importo);
-    if (t.tipo === "uscita") weeklyUscite[index] += Number(t.importo);
-  });
-
-  renderBarChart("weeklyChart", days, weeklyEntrate, weeklyUscite);
-}
-
 window.updateMonthlyChart = async function() {
   const selectedMonth = document.getElementById("filterMonth").value;
   if (selectedMonth) {
@@ -230,7 +109,6 @@ window.updateMonthlyChart = async function() {
     await ensureRecurringForMonth(window.currentMonth);
     render();
   }
-  renderCharts();
 };
 
 async function shiftMonth(delta) {
@@ -243,7 +121,6 @@ async function shiftMonth(delta) {
   syncCashInputs();
   await ensureRecurringForMonth(window.currentMonth);
   render();
-  renderCharts();
 }
 
 function updateMonthLabel() {
@@ -260,7 +137,6 @@ function setupEvents() {
   if (setupEvents.done) return;
   setupEvents.done = true;
 
-  document.getElementById("fTipo").addEventListener("change", updateCategorySelect);
   document.getElementById("cashStart").addEventListener("input", updateCashPreview);
   document.getElementById("cashCounted").addEventListener("input", updateCashPreview);
   document.getElementById("btnSaveCash").addEventListener("click", saveCashControl);
@@ -273,12 +149,12 @@ function setupEvents() {
     render();
   }
 
-  function saveCashControl() {
+  async function saveCashControl() {
     cashChecks[window.currentMonth] = {
       iniziale: normalizeMoneyInput(document.getElementById("cashStart").value),
       contata: normalizeMoneyInput(document.getElementById("cashCounted").value)
     };
-    saveCashChecks();
+    await saveCashCheck(window.currentMonth, cashChecks[window.currentMonth]);
     syncCashInputs();
     render();
     const status = document.getElementById("cashStatus");
@@ -290,14 +166,14 @@ function setupEvents() {
 
   document.getElementById("btnAggiungi").addEventListener("click", async () => {
     const tipo = document.getElementById("fTipo").value;
-    const cat = document.getElementById("fCat").value;
+    const cat = document.getElementById("fCat").value.trim();
     const membro = document.getElementById("fMembro").value;
     const importo = parseFloat(document.getElementById("fImporto").value);
     const ricorrente = document.getElementById("fRicorrente").checked;
     const reale = document.getElementById("fReale").checked;
 
     if (!cat) {
-      alert("Seleziona una categoria.");
+      alert("Inserisci una descrizione.");
       return;
     }
 
@@ -313,7 +189,7 @@ function setupEvents() {
       if (saved) {
         transactions.unshift(saved);
         render();
-        renderCharts();
+        document.getElementById("fCat").value = "";
         document.getElementById("fImporto").value = "";
       }
     } catch (error) {
@@ -363,7 +239,6 @@ async function copyRecurringFromPreviousMonth(targetMonth, showMessage) {
     }
 
     render();
-    renderCharts();
     if (showMessage) alert(`Copiate ${toCopy.length} voci ricorrenti come attese.`);
   } catch (error) {
     console.error(error);
@@ -377,10 +252,10 @@ function render() {
 
   document.getElementById("kpiCassa").textContent = fmt(riepilogo.cassaCalcolata);
   document.getElementById("kpiDifferenza").textContent = riepilogo.differenzaCassa == null ? "--" : fmt(riepilogo.differenzaCassa);
-  document.getElementById("kpiCasa").textContent = fmt(riepilogo.speseCasa);
-  document.getElementById("kpiPersonali").textContent = fmt(riepilogo.spesePersonali + riepilogo.speseLavoro);
+  document.getElementById("kpiEntrate").textContent = fmt(riepilogo.entrateFamiglia);
+  document.getElementById("kpiUscite").textContent = fmt(riepilogo.usciteFamiglia);
   document.getElementById("kpiSalvadanaio").textContent = fmt(riepilogo.saldoSalvadanaio);
-  document.getElementById("kpiSfizi").textContent = fmt(riepilogo.sfizi);
+  document.getElementById("kpiAttesi").textContent = fmt(riepilogo.movimentiAttesi);
 
   if (riepilogo.cassaCalcolata < SOGLIA_ALLARME_CASSA) {
     setAlert(`Attenzione: cassa familiare sotto soglia (${fmt(riepilogo.cassaCalcolata)} < ${fmt(SOGLIA_ALLARME_CASSA)})`);
@@ -400,15 +275,14 @@ function renderTable(list) {
   if (!tbody) return;
 
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="8">Nessun movimento per questo mese.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">Nessun movimento per questo mese.</td></tr>';
     return;
   }
 
   tbody.innerHTML = list.map(t => `
-    <tr style="color:${t.tipo === "entrata" ? "var(--success)" : "var(--danger)"}">
-      <td>${escapeHTML(t.tipo.toUpperCase())}</td>
+    <tr style="color:${movementColor(t.tipo)}">
+      <td>${escapeHTML(movementLabel(t.tipo))}</td>
       <td>${escapeHTML(t.cat)}</td>
-      <td>${escapeHTML(categoryClass(t))}</td>
       <td>${escapeHTML(t.membro)}</td>
       <td>${fmt(t.importo)}</td>
       <td>${t.ricorrente ? "Si" : "No"}</td>
@@ -433,13 +307,13 @@ function renderMobileList(list) {
     <div class="m-card ${escapeHTML(t.tipo)}">
       <div class="m-info">
         <h4>${escapeHTML(t.cat)} <small>(${escapeHTML(t.membro)})</small></h4>
-        <p>${categoryClass(t)} - ${t.ricorrente ? "Ricorrente" : "Una tantum"} - ${t.confermato ? "Reale" : "Atteso"}</p>
+        <p>${movementLabel(t.tipo)} - ${t.ricorrente ? "Ricorrente" : "Una tantum"} - ${t.confermato ? "Reale" : "Atteso"}</p>
         <div class="m-actions">
           <button class="m-btn conf" onclick="window.toggle('${escapeHTML(t.id)}')">${t.confermato ? "Annulla" : "Conferma"}</button>
           <button class="m-btn del" onclick="window.del('${escapeHTML(t.id)}')">Elimina</button>
         </div>
       </div>
-      <div class="m-amount" style="color:${t.tipo === "entrata" ? "var(--success)" : "var(--danger)"}">${t.tipo === "entrata" ? "+" : "-"}${fmt(t.importo)}</div>
+      <div class="m-amount" style="color:${movementColor(t.tipo)}">${movementSign(t.tipo)}${fmt(t.importo)}</div>
     </div>`).join("");
 }
 
@@ -452,7 +326,6 @@ window.toggle = async (id) => {
     t.reale = t.confermato;
     await updateTransaction(id, { confermato: t.confermato, reale: t.reale });
     render();
-    renderCharts();
   } catch (error) {
     console.error(error);
     alert("Movimento non aggiornato.");
@@ -466,7 +339,6 @@ window.del = async (id) => {
     await deleteTransaction(id);
     transactions = transactions.filter(x => x.id !== id);
     render();
-    renderCharts();
   } catch (error) {
     console.error(error);
     alert("Movimento non eliminato.");
@@ -554,7 +426,6 @@ async function importCSV() {
     transactions = [...imported, ...transactions];
     input.value = "";
     render();
-    renderCharts();
     alert(`Importati ${imported.length} movimenti.`);
   } catch (error) {
     console.error(error);
@@ -572,15 +443,11 @@ function renderCalculation(riepilogo) {
 
   list.innerHTML = `
     <li><span>Cassa iniziale</span><strong>${fmt(riepilogo.cassaIniziale)}</strong></li>
-    <li><span>Entrate familiari</span><strong>${fmt(riepilogo.entrateFamiglia)}</strong></li>
-    <li><span>Spese casa</span><strong>${fmt(riepilogo.speseCasa)}</strong></li>
-    <li><span>Spese personali</span><strong>${fmt(riepilogo.spesePersonali)}</strong></li>
-    <li><span>Spese lavoro</span><strong>${fmt(riepilogo.speseLavoro)}</strong></li>
+    <li><span>Entrate</span><strong>${fmt(riepilogo.entrateFamiglia)}</strong></li>
+    <li><span>Uscite</span><strong>${fmt(riepilogo.usciteFamiglia)}</strong></li>
     <li><span>Salvadanaio versato</span><strong>${fmt(riepilogo.salvadanaioVersato)}</strong></li>
     <li><span>Salvadanaio prelevato</span><strong>${fmt(riepilogo.salvadanaioPrelevato)}</strong></li>
     <li><span>Saldo salvadanaio</span><strong>${fmt(riepilogo.saldoSalvadanaio)}</strong></li>
-    <li><span>Sfizi usati</span><strong>${fmt(riepilogo.sfizi)}</strong></li>
-    <li><span>Uscite familiari totali</span><strong>${fmt(riepilogo.usciteFamiglia)}</strong></li>
     <li><span>Cassa calcolata</span><strong>${fmt(riepilogo.cassaCalcolata)}</strong></li>
     <li><span>Cassa prevista</span><strong>${fmt(riepilogo.cassaPrevista)}</strong></li>
   `;
