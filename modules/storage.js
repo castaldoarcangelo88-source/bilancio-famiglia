@@ -86,7 +86,7 @@ function writeLocalCashCheck(month, check) {
 export async function loadTransactions() {
   if (isLocalTest()) return readLocalTransactions();
 
-  const { supabase } = await import("./supabase-client.js?v=31");
+  const { supabase } = await import("./supabase-client.js?v=20260618180517");
   const { data, error } = await supabase
     .from("transactions")
     .select("*")
@@ -109,7 +109,7 @@ export async function saveTransaction(t) {
     return saved;
   }
 
-  const { supabase } = await import("./supabase-client.js?v=31");
+  const { supabase } = await import("./supabase-client.js?v=20260618180517");
   const { data: userData } = await supabase.auth.getUser();
   const { id, ...dataToInsert } = t;
   const canCreatePrivate = userData?.user?.email === "castaldoarcangelo88@gmail.com";
@@ -137,7 +137,7 @@ export async function updateTransaction(id, updates) {
     return;
   }
 
-  const { supabase } = await import("./supabase-client.js?v=31");
+  const { supabase } = await import("./supabase-client.js?v=20260618180517");
   const { error } = await supabase.from("transactions").update(updates).eq("id", id);
   if (error) throw error;
 }
@@ -148,7 +148,7 @@ export async function deleteTransaction(id) {
     return;
   }
 
-  const { supabase } = await import("./supabase-client.js?v=31");
+  const { supabase } = await import("./supabase-client.js?v=20260618180517");
   const { error } = await supabase.from("transactions").delete().eq("id", id);
   if (error) throw error;
 }
@@ -156,7 +156,7 @@ export async function deleteTransaction(id) {
 export async function loadCashChecks() {
   if (isLocalTest()) return readLocalCashChecks();
 
-  const { supabase } = await import("./supabase-client.js?v=31");
+  const { supabase } = await import("./supabase-client.js?v=20260618180517");
   const { data, error } = await supabase
     .from("cash_checks")
     .select("mese,cassa_iniziale,cassa_contata");
@@ -180,7 +180,7 @@ export async function saveCashCheck(month, check) {
 
   if (isLocalTest()) return;
 
-  const { supabase } = await import("./supabase-client.js?v=31");
+  const { supabase } = await import("./supabase-client.js?v=20260618180517");
   const { data: userData } = await supabase.auth.getUser();
   const payload = {
     mese: month,

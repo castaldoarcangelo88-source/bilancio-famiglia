@@ -1,9 +1,9 @@
-import { createTransaction, SOGLIA_ALLARME_CASSA } from "./data-model.js?v=31";
+import { createTransaction, SOGLIA_ALLARME_CASSA } from "./data-model.js?v=20260618180517";
 import {
   calcolaRiepilogo
-} from "./logic.js?v=31";
-import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV, loadCashChecks, saveCashCheck } from "./storage.js?v=31";
-import { supabase } from "./supabase-client.js?v=31";
+} from "./logic.js?v=20260618180517";
+import { loadTransactions, saveTransaction, updateTransaction, deleteTransaction, exportCSV, loadCashChecks, saveCashCheck } from "./storage.js?v=20260618180517";
+import { supabase } from "./supabase-client.js?v=20260618180517";
 
 window.currentMonth = monthKeyFromDate(new Date());
 let transactions = [];
