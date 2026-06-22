@@ -18,6 +18,7 @@
 
 ## Prossimi controlli
 
+- Valutare la coccola quotidiana per Anna attualmente disponibile solo in `/preview/`.
 - Verificare produzione da account Arcangelo.
 - Verificare produzione da account Anna.
 - Controllare inserimento transazione condivisa da entrambi i telefoni.

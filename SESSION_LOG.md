@@ -27,4 +27,5 @@
 - Sostituiti i tab mobile con vera sidebar drawer blu scuro, overlay, chiusura e logout interno; sidebar persistente desktop. Cache preview forzata `drawer2`. Commit `47991ca`; rollback: `git revert 47991ca`.
 - Preview divisa in sei pagine focalizzate: Panoramica, Nuovo movimento, Calcolo, Riconciliazione, Movimenti, Dati. Testate tutte su mobile senza overflow. Cache `pages3`, commit `27a915e`; rollback: `git revert 27a915e`.
 - Approvata promozione in produzione della variante a sei pagine con sidebar drawer mobile e persistente desktop. Preview preservata. Creati e sincronizzati `docs/PROJECTS_INDEX.md`, `GLOBAL_TASKS.md`, `CODEX_GLOBAL_INSTRUCTIONS.md`, `DEPLOY_RUNBOOK.md`, `deploy.bat` e `SESSION_LOG.md` per allineamento Codex desktop/remoto.
+- Aggiunta in preview una coccola quotidiana visibile solo all'account `anna.balsamo84@gmail.com`: 31 frasi locali, rotazione giornaliera Europe/Rome, firma Arcangelo, nessun servizio esterno. Commit `bc5b1e1`; rollback: `git revert bc5b1e1`.
 - Blocco residuo: commit/push GitHub non eseguiti per errore Git `dubious ownership` nell'ambiente Codex.
