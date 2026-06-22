@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bilancio Famiglia</title>
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="manifest.webmanifest?v=pwa1">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=1">
+  <link rel="stylesheet" href="style.css?v=31">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const authParams = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const authType = authParams.get("type");
+    const hasSupabaseToken = authParams.has("access_token") || authParams.has("refresh_token");
+    if (hasSupabaseToken && ["recovery", "invite", "signup"].includes(authType)) {
+      const recoverySearch = location.search ? `${location.search}&changePassword=1` : "?changePassword=1";
+      location.replace(`login.html${recoverySearch}${location.hash}`);
+    }
+
+    if (new URLSearchParams(location.search).has("resetTest")) {
+      ["bilancio_test_admin", "bilancio_transactions_test", "bilancio_transactions_test_version", "bilancio_categories_test", "bilancio_cash_checks"].forEach(key => localStorage.removeItem(key));
+      history.replaceState(null, "", location.pathname);
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <div class="header-left brand-lockup">
+      <img src="assets/favicon-32.png" alt="" width="36" height="36">
+      <div>
+        <h1>Bilancio</h1>
+        <span>Famiglia Castaldo</span>
+      </div>
+    </div>
+    <div class="month-selector">
+      <button id="prevMonth" aria-label="Mese precedente">&lt;</button>
+      <span id="currentMonth">--</span>
+      <button id="nextMonth" aria-label="Mese successivo">&gt;</button>
+    </div>
+    <button id="btnLogout" class="btn-logout">Esci</button>
+  </header>
+
+  <div id="alert-box"></div>
+
+  <main class="app-shell">
+    <section class="dashboard">
+      <div class="card kpi kpi-main"><span>Cassa calcolata</span><strong id="kpiCassa">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-difference"><span>Differenza</span><strong id="kpiDifferenza">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-income"><span>Entrate</span><strong id="kpiEntrate">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-expense"><span>Uscite</span><strong id="kpiUscite">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-savings"><span>Salvadanaio</span><strong id="kpiSalvadanaio">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-pending"><span>Attesi</span><strong id="kpiAttesi">&euro; 0,00</strong></div>
+    </section>
+
+    <section class="input-panel">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Inserimento rapido</span>
+          <h2>Nuovo movimento</h2>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="input-field"><span>Tipo</span><select id="fTipo">
+            <option value="entrata">Entrata</option>
+            <option value="uscita">Uscita</option>
+            <option value="accantonamento">Accantonamento salvadanaio</option>
+            <option value="prelievo">Prelievo da salvadanaio</option>
+          </select></label>
+        <label class="input-field input-field-wide"><span>Descrizione</span><input type="text" id="fCat" placeholder="Es. spesa settimanale"></label>
+      </div>
+      <div class="form-row">
+        <label class="input-field"><span>Persona</span><select id="fMembro">
+            <option value="Famiglia">Famiglia</option>
+            <option value="Arcangelo">Arcangelo</option>
+            <option value="Anna">Anna</option>
+            <option value="Figlio 1">Figlio 1</option>
+            <option value="Figlio 2">Figlio 2</option>
+            <option value="Figlio 3">Figlio 3</option>
+          </select></label>
+        <label class="input-field"><span>Importo</span><input type="number" id="fImporto" min="0.01" step="0.01" placeholder="0,00"></label>
+      </div>
+      <div class="form-options">
+        <label><input type="checkbox" id="fRicorrente"> Ricorrente</label>
+        <label><input type="checkbox" id="fReale" checked> Reale</label>
+        <label><input type="checkbox" id="fPrivata"> Privata</label>
+      </div>
+      <button id="btnAggiungi" class="btn-primary">Aggiungi movimento</button>
+      <button id="btnCopiaRicorrenti" class="btn-secondary secondary-action">Copia ricorrenti dal mese precedente</button>
+    </section>
+
+    <section class="summary-panel">
+      <div class="summary-grid">
+        <div class="summary-block">
+          <span class="eyebrow">Situazione del mese</span>
+          <h2>Calcolo automatico</h2>
+          <ul id="calculationList"></ul>
+        </div>
+        <div class="summary-block reconciliation-block">
+          <span class="eyebrow">Controllo reale</span>
+          <h2>Riconciliazione</h2>
+          <p class="helper-text">Conta i soldi reali disponibili e confrontali con quelli calcolati dall'app.</p>
+          <div class="cash-check">
+            <label>Cassa iniziale mese<input type="text" id="cashStart" inputmode="decimal" placeholder="0,00"></label>
+            <label>Cassa contata adesso<input type="text" id="cashCounted" inputmode="decimal" placeholder="0,00"></label>
+            <button id="btnSaveCash" class="btn-secondary">Aggiorna controllo</button>
+            <div id="cashStatus" class="status-msg"></div>
+          </div>
+          <div id="reconcileList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="table-panel desktop-only">
+      <div class="section-heading"><div><span class="eyebrow">Registro mensile</span><h2>Movimenti</h2></div></div>
+      <table id="transTable">
+        <thead>
+          <tr><th>Tipo</th><th>Descrizione</th><th>Persona</th><th>Importo</th><th>Vis.</th><th>Ric.</th><th>Stato</th><th>Azioni</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="mobile-only" id="mobile-list">
+      <div class="section-heading"><div><span class="eyebrow">Registro mensile</span><h2>Movimenti</h2></div></div>
+      <div id="mobile-container"></div>
+    </section>
+
+    <section class="rollover-panel">
+      <div class="section-heading"><div><span class="eyebrow">Archivio</span><h2>Dati e backup</h2></div></div>
+      <ul id="rolloverList"></ul>
+      <div class="import-row">
+        <input type="file" id="csvImport" accept=".csv,text/csv">
+        <button id="btnImport" class="btn-secondary">Importa CSV</button>
+      </div>
+      <button id="btnExport" class="btn-secondary" style="width:100%">Esporta CSV</button>
+    </section>
+  </main>
+
+  <div class="mobile-spacer"></div>
+
+  <script type="module" src="./modules/ui.js?v=31"></script>
+  <script type="module" src="./modules/db-manager.js?v=31"></script>
+  <script type="module" src="./modules/pwa.js?v=pwa1"></script>
+
+  <script>
+    window.showTab = function(tabName) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+
+      document.getElementById(tabName + "-tab").classList.add("active");
+      const btns = document.querySelectorAll(".tab-btn");
+      if (tabName === "weekly") btns[0].classList.add("active");
+      if (tabName === "monthly") btns[1].classList.add("active");
+      if (tabName === "settings") btns[2].classList.add("active");
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Bilancio Famiglia</title>
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="manifest.webmanifest?v=pwa1">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=1">
+  <link rel="stylesheet" href="style.css?v=32">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    if (new URLSearchParams(location.search).has("resetTest")) {
+      ["bilancio_test_admin", "bilancio_transactions_test", "bilancio_transactions_test_version", "bilancio_categories_test", "bilancio_cash_checks"].forEach(key => localStorage.removeItem(key));
+      history.replaceState(null, "", location.pathname);
+    }
+  </script>
+</head>
+<body class="login-page">
+  <div class="login-box">
+    <img class="login-mark" src="assets/icon-192.png" alt="Stemma Castaldo" width="76" height="76">
+    <h2>Bilancio Famiglia</h2>
+    <div id="error-msg"></div>
+
+    <div id="login-form">
+      <input type="email" id="email" placeholder="Email" autocomplete="username">
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+      <button class="btn-login" onclick="handleAuth()">Accedi</button>
+      <p class="login-note">Accesso consentito solo agli utenti invitati e autorizzati.</p>
+    </div>
+
+    <div id="password-setup">
+      <input type="password" id="newPassword" placeholder="Nuova password" autocomplete="new-password">
+      <input type="password" id="confirmPassword" placeholder="Ripeti password" autocomplete="new-password">
+      <button class="btn-login" onclick="setInvitedPassword()">Imposta password</button>
+      <p class="login-note">Invito accettato. Imposta una password per accedere all'app.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from "./modules/supabase-client.js";
+
+    const errEl = document.getElementById("error-msg");
+    const loginForm = document.getElementById("login-form");
+    const passwordSetup = document.getElementById("password-setup");
+
+    function showError(message) {
+      errEl.textContent = message;
+      errEl.style.display = "block";
+    }
+
+    function clearError() {
+      errEl.textContent = "";
+      errEl.style.display = "none";
+    }
+
+    function showPasswordSetup() {
+      loginForm.style.display = "none";
+      passwordSetup.style.display = "block";
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const authParams = new URLSearchParams(window.location.hash.slice(1));
+    const authType = authParams.get("type");
+    const hasAuthToken = authParams.has("access_token") || authParams.has("refresh_token");
+    const mustChangePassword =
+      searchParams.has("changePassword") ||
+      searchParams.has("code") ||
+      hasAuthToken ||
+      ["invite", "recovery", "signup"].includes(authType);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session && mustChangePassword) {
+      history.replaceState(null, "", location.pathname);
+      showPasswordSetup();
+    } else if (sessionData.session) {
+      window.location.href = "index.html";
+    } else if (mustChangePassword) {
+      showPasswordSetup();
+    }
+
+    window.handleAuth = async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      clearError();
+
+      if (!email || !password) {
+        showError("Inserisci email e password");
+        return;
+      }
+
+      const res = await supabase.auth.signInWithPassword({ email, password });
+
+      if (res.error) {
+        showError(res.error.message);
+      } else {
+        window.location.href = "index.html";
+      }
+    };
+
+    window.setInvitedPassword = async () => {
+      const password = document.getElementById("newPassword").value;
+      const confirm = document.getElementById("confirmPassword").value;
+
+      clearError();
+
+      if (!password || password.length < 6) {
+        showError("La password deve avere almeno 6 caratteri");
+        return;
+      }
+
+      if (password !== confirm) {
+        showError("Le password non coincidono");
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        showError(error.message);
+      } else {
+        window.location.href = "index.html";
+      }
+    };
+  </script>
+  <script type="module" src="./modules/pwa.js?v=pwa1"></script>
+</body>
+</html>

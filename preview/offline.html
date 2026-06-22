@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+  <title>Bilancio Famiglia - Offline</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    main { width: min(420px, 100%); text-align: center; }
+    h1 { margin-bottom: 12px; }
+    p { color: var(--gray); line-height: 1.5; }
+    button { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Connessione assente</h1>
+    <p>I dati familiari restano protetti su Supabase. Riprova quando la connessione torna disponibile.</p>
+    <button class="btn-secondary" onclick="location.reload()">Riprova</button>
+  </main>
+</body>
+</html>
