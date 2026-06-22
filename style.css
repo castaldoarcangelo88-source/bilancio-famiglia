@@ -375,19 +375,31 @@ tbody tr:hover { background: #f9fbfc; }
     z-index: 410;
     display: flex;
     width: min(300px, 84vw);
-    min-height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
     margin: 0;
-    padding: 18px 12px;
+    padding: 18px 12px max(12px, env(safe-area-inset-bottom));
     border: 0;
     border-radius: 0;
     box-shadow: 12px 0 30px rgba(0,0,0,0.22);
     transform: translateX(-105%);
     transition: transform 180ms ease;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .app-sidebar.open { transform: translateX(0); }
   .sidebar-brand { display: flex; }
   .menu-close { display: block; }
   .sidebar-heading, .sidebar-foot { display: block; }
+  .sidebar-foot {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 12px 5px max(4px, env(safe-area-inset-bottom));
+    background: var(--navy);
+  }
+  .sidebar-foot .btn-logout { min-height: 44px; }
   .sidebar-nav { display: grid; grid-template-columns: 1fr; gap: 5px; }
   .sidebar-link {
     min-height: 44px;

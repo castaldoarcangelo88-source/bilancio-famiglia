@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "bilancio-cache-";
-const CACHE_NAME = `${CACHE_PREFIX}20260622-love-production1`;
+const CACHE_NAME = `${CACHE_PREFIX}20260622-logoutfix1`;
 const APP_SHELL = [
   "./",
   "./index.html",

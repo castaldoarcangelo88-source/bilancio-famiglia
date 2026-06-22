@@ -29,4 +29,5 @@
 - Approvata promozione in produzione della variante a sei pagine con sidebar drawer mobile e persistente desktop. Preview preservata. Creati e sincronizzati `docs/PROJECTS_INDEX.md`, `GLOBAL_TASKS.md`, `CODEX_GLOBAL_INSTRUCTIONS.md`, `DEPLOY_RUNBOOK.md`, `deploy.bat` e `SESSION_LOG.md` per allineamento Codex desktop/remoto.
 - Aggiunta in preview una coccola quotidiana visibile solo all'account `anna.balsamo84@gmail.com`: 31 frasi locali, rotazione giornaliera Europe/Rome, firma Arcangelo, nessun servizio esterno. Commit `bc5b1e1`; rollback: `git revert bc5b1e1`.
 - Approvata promozione in produzione della coccola quotidiana per Anna. Aggiornati PWA cache, `deploy.bat` e documentazione; preview preservata.
+- Corretto logout nascosto dalla barra Android: drawer mobile usa `100dvh`, safe-area, overflow controllato e footer sticky. Verificato Playwright 390x650: pulsante interamente visibile. Cache produzione/preview `logoutfix1`.
 - Blocco residuo: commit/push GitHub non eseguiti per errore Git `dubious ownership` nell'ambiente Codex.
