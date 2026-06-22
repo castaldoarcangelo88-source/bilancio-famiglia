@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#2563eb">
   <link rel="manifest" href="manifest.webmanifest?v=pwa1">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=1">
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="stylesheet" href="style.css?v=drawer2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -27,6 +27,7 @@
 </head>
 <body>
   <header>
+    <button id="btnMenu" class="menu-toggle" type="button" aria-label="Apri menu" title="Apri menu">&#9776;</button>
     <div class="header-left brand-lockup">
       <img src="assets/favicon-32.png" alt="" width="36" height="36">
       <div>
@@ -39,21 +40,26 @@
       <span id="currentMonth">--</span>
       <button id="nextMonth" aria-label="Mese successivo">&gt;</button>
     </div>
-    <button id="btnLogout" class="btn-logout">Esci</button>
   </header>
 
   <div id="alert-box"></div>
 
   <main class="app-layout">
     <aside class="app-sidebar" aria-label="Sezioni">
+      <div class="sidebar-brand">
+        <img src="assets/icon-192.png" alt="" width="46" height="46">
+        <div><strong>Bilancio</strong><span>Famiglia Castaldo</span></div>
+        <button id="btnCloseMenu" class="menu-close" type="button" aria-label="Chiudi menu" title="Chiudi menu">&times;</button>
+      </div>
       <div class="sidebar-heading">Menu</div>
       <nav class="sidebar-nav">
         <button class="sidebar-link active" type="button" data-page="overview">Panoramica</button>
         <button class="sidebar-link" type="button" data-page="movements">Movimenti</button>
         <button class="sidebar-link" type="button" data-page="data">Dati</button>
       </nav>
-      <div class="sidebar-foot">Famiglia Castaldo</div>
+      <div class="sidebar-foot"><button id="btnLogout" class="btn-logout">Esci</button></div>
     </aside>
+    <button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="Chiudi menu"></button>
 
     <div class="app-workspace">
       <section class="app-page active" data-page-view="overview">
@@ -161,7 +167,7 @@
   <script type="module" src="./modules/ui.js?v=31"></script>
   <script type="module" src="./modules/db-manager.js?v=31"></script>
   <script type="module" src="./modules/pwa.js?v=pwa1"></script>
-  <script type="module" src="./modules/navigation.js?v=nav1"></script>
+  <script type="module" src="./modules/navigation.js?v=drawer2"></script>
 
   <script>
     window.showTab = function(tabName) {
