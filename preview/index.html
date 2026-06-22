@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#2563eb">
   <link rel="manifest" href="manifest.webmanifest?v=pwa1">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=1">
-  <link rel="stylesheet" href="style.css?v=drawer2">
+  <link rel="stylesheet" href="style.css?v=pages3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -54,6 +54,9 @@
       <div class="sidebar-heading">Menu</div>
       <nav class="sidebar-nav">
         <button class="sidebar-link active" type="button" data-page="overview">Panoramica</button>
+        <button class="sidebar-link" type="button" data-page="new-entry">Nuovo movimento</button>
+        <button class="sidebar-link" type="button" data-page="calculation">Calcolo</button>
+        <button class="sidebar-link" type="button" data-page="reconciliation">Riconciliazione</button>
         <button class="sidebar-link" type="button" data-page="movements">Movimenti</button>
         <button class="sidebar-link" type="button" data-page="data">Dati</button>
       </nav>
@@ -71,7 +74,9 @@
       <div class="card kpi kpi-savings"><span>Salvadanaio</span><strong id="kpiSalvadanaio">&euro; 0,00</strong></div>
       <div class="card kpi kpi-pending"><span>Attesi</span><strong id="kpiAttesi">&euro; 0,00</strong></div>
     </section>
+      </section>
 
+      <section class="app-page" data-page-view="new-entry">
     <section class="input-panel">
       <div class="section-heading">
         <div>
@@ -107,15 +112,21 @@
       <button id="btnAggiungi" class="btn-primary">Aggiungi movimento</button>
       <button id="btnCopiaRicorrenti" class="btn-secondary secondary-action">Copia ricorrenti dal mese precedente</button>
     </section>
+      </section>
 
+      <section class="app-page" data-page-view="calculation">
     <section class="summary-panel">
-      <div class="summary-grid">
-        <div class="summary-block">
+      <div class="summary-single">
           <span class="eyebrow">Situazione del mese</span>
           <h2>Calcolo automatico</h2>
           <ul id="calculationList"></ul>
-        </div>
-        <div class="summary-block reconciliation-block">
+      </div>
+    </section>
+      </section>
+
+      <section class="app-page" data-page-view="reconciliation">
+    <section class="summary-panel">
+      <div class="summary-single reconciliation-block">
           <span class="eyebrow">Controllo reale</span>
           <h2>Riconciliazione</h2>
           <p class="helper-text">Conta i soldi reali disponibili e confrontali con quelli calcolati dall'app.</p>
@@ -126,7 +137,6 @@
             <div id="cashStatus" class="status-msg"></div>
           </div>
           <div id="reconcileList"></div>
-        </div>
       </div>
     </section>
       </section>
@@ -167,7 +177,7 @@
   <script type="module" src="./modules/ui.js?v=31"></script>
   <script type="module" src="./modules/db-manager.js?v=31"></script>
   <script type="module" src="./modules/pwa.js?v=pwa1"></script>
-  <script type="module" src="./modules/navigation.js?v=drawer2"></script>
+  <script type="module" src="./modules/navigation.js?v=pages3"></script>
 
   <script>
     window.showTab = function(tabName) {
