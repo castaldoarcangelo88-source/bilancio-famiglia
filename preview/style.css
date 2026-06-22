@@ -149,6 +149,22 @@ header {
 .kpi-pending::before { background: var(--warning); }
 .kpi-difference::before { background: #7b8794; }
 
+.daily-message {
+  position: relative;
+  margin: 0 0 14px;
+  padding: 22px 24px 20px;
+  overflow: hidden;
+  border-left: 4px solid var(--gold);
+  border-radius: 8px;
+  background: var(--navy);
+  color: #fff;
+}
+.daily-message[hidden] { display: none; }
+.daily-message::after { content: "A"; position: absolute; right: 18px; bottom: -28px; color: rgba(255,255,255,0.05); font-family: Georgia, serif; font-size: 8rem; line-height: 1; }
+.daily-message-label { display: block; margin-bottom: 9px; color: #e3bd65; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+.daily-message blockquote { position: relative; z-index: 1; max-width: 800px; font-family: Georgia, "Times New Roman", serif; font-size: 1.15rem; line-height: 1.55; }
+.daily-message-signature { position: relative; z-index: 1; display: block; margin-top: 10px; color: #b9c9d8; font-size: 0.76rem; font-style: italic; }
+
 .input-panel,
 .summary-panel,
 .table-panel,
@@ -387,6 +403,8 @@ tbody tr:hover { background: #f9fbfc; }
   .dashboard { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
   .kpi { min-height: 78px; padding: 12px; }
   .kpi strong { font-size: 1rem; }
+  .daily-message { margin-bottom: 10px; padding: 19px 18px; }
+  .daily-message blockquote { font-size: 1.03rem; }
   .input-panel, .summary-panel, .mobile-only, .rollover-panel { padding: 14px; margin-bottom: 10px; }
   .form-row, .form-row + .form-row { grid-template-columns: 1fr; gap: 10px; }
   .summary-grid { grid-template-columns: 1fr; }

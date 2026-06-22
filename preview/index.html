@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#2563eb">
   <link rel="manifest" href="manifest.webmanifest?v=pwa1">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=1">
-  <link rel="stylesheet" href="style.css?v=pages3">
+  <link rel="stylesheet" href="style.css?v=love4">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -73,6 +73,11 @@
       <div class="card kpi kpi-expense"><span>Uscite</span><strong id="kpiUscite">&euro; 0,00</strong></div>
       <div class="card kpi kpi-savings"><span>Salvadanaio</span><strong id="kpiSalvadanaio">&euro; 0,00</strong></div>
       <div class="card kpi kpi-pending"><span>Attesi</span><strong id="kpiAttesi">&euro; 0,00</strong></div>
+    </section>
+    <section id="dailyMessage" class="daily-message" hidden aria-live="polite">
+      <span class="daily-message-label">Per te, Anna</span>
+      <blockquote id="dailyMessageText"></blockquote>
+      <span class="daily-message-signature">Arcangelo</span>
     </section>
       </section>
 
@@ -177,7 +182,8 @@
   <script type="module" src="./modules/ui.js?v=31"></script>
   <script type="module" src="./modules/db-manager.js?v=31"></script>
   <script type="module" src="./modules/pwa.js?v=pwa1"></script>
-  <script type="module" src="./modules/navigation.js?v=pages3"></script>
+  <script type="module" src="./modules/navigation.js?v=love4"></script>
+  <script type="module" src="./modules/daily-message.js?v=love4"></script>
 
   <script>
     window.showTab = function(tabName) {
