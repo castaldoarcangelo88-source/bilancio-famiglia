@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "bilancio-preview-";
-const CACHE_NAME = `${CACHE_PREFIX}20260622-design1`;
+const CACHE_NAME = `${CACHE_PREFIX}20260622-navigation1`;
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_SHELL = [
   "./offline.html",
   "./style.css",
   "./manifest.webmanifest",
+  "./modules/navigation.js",
   "./assets/favicon-32.png",
   "./assets/icon-192.png",
   "./assets/icon-512.png"

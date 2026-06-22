@@ -89,7 +89,48 @@ header {
   font-weight: 750;
 }
 
-.app-shell { width: min(1240px, 100%); margin: 0 auto; padding: 18px; }
+.app-layout {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 18px;
+  width: min(1380px, 100%);
+  margin: 0 auto;
+  padding: 18px;
+}
+.app-sidebar {
+  position: sticky;
+  top: 82px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 100px);
+  padding: 14px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.sidebar-heading { padding: 5px 9px 11px; color: var(--muted); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+.sidebar-nav { display: grid; gap: 5px; }
+.sidebar-link {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #4a5866;
+  text-align: left;
+  font-weight: 750;
+  cursor: pointer;
+}
+.sidebar-link:hover { background: var(--surface-soft); color: var(--navy); }
+.sidebar-link.active { border-left-color: var(--gold); background: #edf4f9; color: var(--navy); }
+.sidebar-foot { margin-top: auto; padding: 12px 9px 4px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.7rem; }
+.app-workspace { min-width: 0; }
+.app-page { display: none; }
+.app-page.active { display: block; }
 .dashboard { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
 .card {
   min-width: 0;
@@ -315,7 +356,30 @@ tbody tr:hover { background: #f9fbfc; }
   .month-selector button { width: 30px; }
   #currentMonth { min-width: 66px; }
   .btn-logout { position: static; grid-column: 3; grid-row: 1; min-width: 50px; padding: 8px; box-shadow: none; }
-  .app-shell { padding: 12px; }
+  .app-layout { display: block; padding: 0 12px 12px; }
+  .app-sidebar {
+    position: sticky;
+    top: 57px;
+    z-index: 90;
+    display: block;
+    min-height: 0;
+    margin: 0 -12px 10px;
+    padding: 7px 12px;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    box-shadow: 0 3px 8px rgba(23, 33, 43, 0.06);
+  }
+  .sidebar-heading, .sidebar-foot { display: none; }
+  .sidebar-nav { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .sidebar-link {
+    min-height: 36px;
+    padding: 7px 6px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    text-align: center;
+    font-size: 0.76rem;
+  }
+  .sidebar-link.active { border-bottom-color: var(--gold); }
   .dashboard { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
   .kpi { min-height: 78px; padding: 12px; }
   .kpi strong { font-size: 1rem; }

@@ -44,7 +44,19 @@
 
   <div id="alert-box"></div>
 
-  <main class="app-shell">
+  <main class="app-layout">
+    <aside class="app-sidebar" aria-label="Sezioni">
+      <div class="sidebar-heading">Menu</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-link active" type="button" data-page="overview">Panoramica</button>
+        <button class="sidebar-link" type="button" data-page="movements">Movimenti</button>
+        <button class="sidebar-link" type="button" data-page="data">Dati</button>
+      </nav>
+      <div class="sidebar-foot">Famiglia Castaldo</div>
+    </aside>
+
+    <div class="app-workspace">
+      <section class="app-page active" data-page-view="overview">
     <section class="dashboard">
       <div class="card kpi kpi-main"><span>Cassa calcolata</span><strong id="kpiCassa">&euro; 0,00</strong></div>
       <div class="card kpi kpi-difference"><span>Differenza</span><strong id="kpiDifferenza">&euro; 0,00</strong></div>
@@ -111,7 +123,9 @@
         </div>
       </div>
     </section>
+      </section>
 
+      <section class="app-page" data-page-view="movements">
     <section class="table-panel desktop-only">
       <div class="section-heading"><div><span class="eyebrow">Registro mensile</span><h2>Movimenti</h2></div></div>
       <table id="transTable">
@@ -126,7 +140,9 @@
       <div class="section-heading"><div><span class="eyebrow">Registro mensile</span><h2>Movimenti</h2></div></div>
       <div id="mobile-container"></div>
     </section>
+      </section>
 
+      <section class="app-page" data-page-view="data">
     <section class="rollover-panel">
       <div class="section-heading"><div><span class="eyebrow">Archivio</span><h2>Dati e backup</h2></div></div>
       <ul id="rolloverList"></ul>
@@ -136,6 +152,8 @@
       </div>
       <button id="btnExport" class="btn-secondary" style="width:100%">Esporta CSV</button>
     </section>
+      </section>
+    </div>
   </main>
 
   <div class="mobile-spacer"></div>
@@ -143,6 +161,7 @@
   <script type="module" src="./modules/ui.js?v=31"></script>
   <script type="module" src="./modules/db-manager.js?v=31"></script>
   <script type="module" src="./modules/pwa.js?v=pwa1"></script>
+  <script type="module" src="./modules/navigation.js?v=nav1"></script>
 
   <script>
     window.showTab = function(tabName) {
