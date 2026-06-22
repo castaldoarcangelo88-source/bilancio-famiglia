@@ -7,6 +7,7 @@
 - Transazioni private consentite solo a `castaldoarcangelo88@gmail.com`.
 - RLS Supabase applicata tramite `supabase_security_update.sql`.
 - PWA attiva con cache versionata.
+- Coccola quotidiana attiva in produzione e visibile solo a `anna.balsamo84@gmail.com`.
 - Preview remota conservata.
 - Nuova produzione approvata con sei pagine:
   - Panoramica
@@ -18,7 +19,7 @@
 
 ## Prossimi controlli
 
-- Valutare la coccola quotidiana per Anna attualmente disponibile solo in `/preview/`.
+- Verificare dal telefono di Anna la rotazione quotidiana della coccola.
 - Verificare produzione da account Arcangelo.
 - Verificare produzione da account Anna.
 - Controllare inserimento transazione condivisa da entrambi i telefoni.

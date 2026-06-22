@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Bilancio Famiglia</title>
   <meta name="theme-color" content="#2563eb">
-  <link rel="manifest" href="manifest.webmanifest?v=prodpages1">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=prodpages1">
-  <link rel="stylesheet" href="style.css?v=prodpages1">
+  <link rel="manifest" href="manifest.webmanifest?v=prodlove1">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=prodlove1">
+  <link rel="stylesheet" href="style.css?v=prodlove1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -73,6 +73,11 @@
       <div class="card kpi kpi-expense"><span>Uscite</span><strong id="kpiUscite">&euro; 0,00</strong></div>
       <div class="card kpi kpi-savings"><span>Salvadanaio</span><strong id="kpiSalvadanaio">&euro; 0,00</strong></div>
       <div class="card kpi kpi-pending"><span>Attesi</span><strong id="kpiAttesi">&euro; 0,00</strong></div>
+    </section>
+    <section id="dailyMessage" class="daily-message" hidden aria-live="polite">
+      <span class="daily-message-label">Per te, Anna</span>
+      <blockquote id="dailyMessageText"></blockquote>
+      <span class="daily-message-signature">Arcangelo</span>
     </section>
       </section>
 
@@ -174,10 +179,11 @@
 
   <div class="mobile-spacer"></div>
 
-  <script type="module" src="./modules/ui.js?v=prodpages1"></script>
-  <script type="module" src="./modules/db-manager.js?v=prodpages1"></script>
-  <script type="module" src="./modules/pwa.js?v=prodpages1"></script>
-  <script type="module" src="./modules/navigation.js?v=prodpages1"></script>
+  <script type="module" src="./modules/ui.js?v=prodlove1"></script>
+  <script type="module" src="./modules/db-manager.js?v=prodlove1"></script>
+  <script type="module" src="./modules/pwa.js?v=prodlove1"></script>
+  <script type="module" src="./modules/navigation.js?v=prodlove1"></script>
+  <script type="module" src="./modules/daily-message.js?v=prodlove1"></script>
 
   <script>
     window.showTab = function(tabName) {

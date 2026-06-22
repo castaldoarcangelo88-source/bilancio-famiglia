@@ -14,6 +14,7 @@
 - Mantenere RLS attiva sulle tabelle pubbliche.
 - Non reintrodurre login locale `admin/admin123` in produzione.
 - Le modifiche alla privacy devono essere protette sia nella UI sia nelle policy RLS.
+- La coccola quotidiana deve restare visibile solo all'account Anna e non deve usare API esterne.
 
 ## Interfaccia
 

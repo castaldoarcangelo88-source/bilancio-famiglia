@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "bilancio-cache-";
-const CACHE_NAME = `${CACHE_PREFIX}20260622-pages-production1`;
+const CACHE_NAME = `${CACHE_PREFIX}20260622-love-production1`;
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const APP_SHELL = [
   "./style.css",
   "./manifest.webmanifest",
   "./modules/navigation.js",
+  "./modules/daily-message.js",
   "./assets/favicon-32.png",
   "./assets/icon-192.png",
   "./assets/icon-512.png"
