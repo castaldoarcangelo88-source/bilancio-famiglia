@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Bilancio Famiglia</title>
   <meta name="theme-color" content="#2563eb">
-  <link rel="manifest" href="manifest.webmanifest?v=20260618183356">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=20260618183356">
-  <link rel="stylesheet" href="style.css?v=20260618183356">
+  <link rel="manifest" href="manifest.webmanifest?v=prodpages1">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=prodpages1">
+  <link rel="stylesheet" href="style.css?v=prodpages1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     if (new URLSearchParams(location.search).has("resetTest")) {
@@ -15,19 +15,10 @@
       history.replaceState(null, "", location.pathname);
     }
   </script>
-  <style>
-    body { background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 16px; }
-    .login-box { background: white; padding: 2rem; border-radius: 12px; box-shadow: var(--shadow); width: 100%; max-width: 350px; text-align: center; }
-    .login-box h2 { color: var(--primary); margin-bottom: 1.5rem; }
-    .login-box input { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-    .btn-login { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-    .login-note { color: var(--gray); font-size: 0.85rem; line-height: 1.4; margin-top: 12px; }
-    #error-msg { color: var(--danger); font-size: 0.9rem; margin-bottom: 1rem; display: none; }
-    #password-setup { display: none; }
-  </style>
 </head>
-<body>
+<body class="login-page">
   <div class="login-box">
+    <img class="login-mark" src="assets/icon-192.png" alt="Stemma Castaldo" width="76" height="76">
     <h2>Bilancio Famiglia</h2>
     <div id="error-msg"></div>
 
@@ -132,6 +123,6 @@
       }
     };
   </script>
-  <script type="module" src="./modules/pwa.js?v=20260618183356"></script>
+  <script type="module" src="./modules/pwa.js?v=prodpages1"></script>
 </body>
 </html>

@@ -1,0 +1,30 @@
+2026-06-03
+
+- Verificato problema demo: `http://127.0.0.1:8765/login.html` non rispondeva.
+- Verificata cartella pubblicabile `bilancio-famiglia`: mancava `modules/config.js` e i moduli erano vecchi rispetto alla cartella principale.
+- Allineati in staging locale i file `index.html`, `login.html`, `style.css` e tutti i file `modules/*.js` dentro `bilancio-famiglia`.
+- Aggiunto redirect in `index.html`: i link Supabase `recovery`, `invite` e `signup` vengono inoltrati a `login.html` mantenendo i token.
+- Rafforzata `login.html`: se arriva da recovery/invite/signup, da `code`, da token Supabase o da `changePassword=1`, mostra sempre la schermata `Imposta password` invece di entrare subito nella dashboard.
+- Avviata semplificazione contabile: rimossa dipendenza da categorie fisse nell'interfaccia, `cat` usato come descrizione libera, tipi minimi `entrata`, `uscita`, `accantonamento`, `prelievo`, persone estese a Famiglia/Arcangelo/Anna/Figlio 1/Figlio 2/Figlio 3.
+- Sincronizzata la bozza minimale anche nella cartella pubblicabile `bilancio-famiglia`.
+- Rimosso login locale temporaneo prima del deploy: niente `admin` / `admin123`, accesso solo via Supabase Auth.
+- Aggiunta privacy transazioni: default `shared` visibile ad Arcangelo e Anna, opzione `Privata` con `visibility='private'` e `owner_id=auth.uid()`. Aggiornato `supabase_setup.sql` con colonne e policy RLS dedicate.
+- Limitata privacy al solo account `castaldoarcangelo88@gmail.com`: Anna non vede la spunta `Privata`; salvataggio e policy SQL impediscono private da altri account.
+- Aggiunto tasto `Esci` in header: esegue `supabase.auth.signOut()`, pulisce eventuale flag locale e torna a `login.html`.
+- Creato `deploy.bat` per automatizzare `git add`, `git commit` e `git push` dalla cartella `bilancio-famiglia`.
+- Aggiornato `deploy.bat`: prima del commit sostituisce automaticamente tutti i parametri `?v=` con timestamp `yyyyMMddHHmmss`, forzando il rinnovo cache dopo ogni deploy.
+- Forzato cache busting `v=31` su `index.html`, `ui.js`, `storage.js` e import collegati: evita che GitHub Pages continui a inviare `owner_id` da moduli vecchi.
+- Creato `supabase_security_update.sql`: script separato per RLS, `visibility`, `owner_id`, policy shared/private e protezione `cash_checks`.
+- Aggiunta favicon da immagine stemma Castaldo in `assets/favicon.png`, collegata in `index.html` e `login.html`.
+- Ottimizzata favicon: creata `assets/favicon-32.png` da 32x32 e 2,5 KB, con attributo `sizes`, per compatibilita e caricamento immediato nei browser.
+- Preparata bozza PWA solo in staging: `manifest.webmanifest`, `service-worker.js`, `modules/pwa.js`, `offline.html`, icone 192/512. Produzione `bilancio-famiglia` non modificata.
+- Aggiunto invito installazione PWA in staging: prompt nativo Android tramite `beforeinstallprompt`, avviso iOS, nascosto se gia installata e riproposto dopo 7 giorni se chiuso.
+- PWA promossa nella cartella produzione e commit locale creato: `7b8c57b` (`Add installable PWA with automatic cache updates`). Push non eseguito per rete GitHub non disponibile nell'ambiente Codex.
+- Verificato deploy PWA allineato a `origin/main`; corretto `deploy.bat` per aggiornare realmente `CACHE_NAME` del service worker e impostata cache `bilancio-cache-20260618-pwa2`.
+- Riqualificazione grafica preparata solo in staging: nuovo header, KPI, modulo movimento, riepiloghi, registro, backup e login. Logica/ID invariati. Verificati Playwright desktop 1440x900 e mobile 390x844 senza overflow o sovrapposizioni.
+- Pubblicata preview grafica isolata in `/preview/` con commit `39c7bea`. Service worker e cache separati dalla produzione. Rollback: `git revert 39c7bea` seguito da push.
+- Aggiunte alla preview pagine `Panoramica`, `Movimenti`, `Dati` con sidebar desktop e tab mobile. Verificate con Playwright senza overflow. Commit `287695d`; rollback dedicato: `git revert 287695d`.
+- Sostituiti i tab mobile con vera sidebar drawer blu scuro, overlay, chiusura e logout interno; sidebar persistente desktop. Cache preview forzata `drawer2`. Commit `47991ca`; rollback: `git revert 47991ca`.
+- Preview divisa in sei pagine focalizzate: Panoramica, Nuovo movimento, Calcolo, Riconciliazione, Movimenti, Dati. Testate tutte su mobile senza overflow. Cache `pages3`, commit `27a915e`; rollback: `git revert 27a915e`.
+- Approvata promozione in produzione della variante a sei pagine con sidebar drawer mobile e persistente desktop. Preview preservata. Creati e sincronizzati `docs/PROJECTS_INDEX.md`, `GLOBAL_TASKS.md`, `CODEX_GLOBAL_INSTRUCTIONS.md`, `DEPLOY_RUNBOOK.md`, `deploy.bat` e `SESSION_LOG.md` per allineamento Codex desktop/remoto.
+- Blocco residuo: commit/push GitHub non eseguiti per errore Git `dubious ownership` nell'ambiente Codex.

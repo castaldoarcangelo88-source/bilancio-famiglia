@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Bilancio Famiglia</title>
   <meta name="theme-color" content="#2563eb">
-  <link rel="manifest" href="manifest.webmanifest?v=20260618183356">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=20260618183356">
-  <link rel="stylesheet" href="style.css?v=20260618183356">
+  <link rel="manifest" href="manifest.webmanifest?v=prodpages1">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=prodpages1">
+  <link rel="stylesheet" href="style.css?v=prodpages1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -27,49 +27,82 @@
 </head>
 <body>
   <header>
-    <div class="header-left">
-      <h1>Bilancio</h1>
+    <button id="btnMenu" class="menu-toggle" type="button" aria-label="Apri menu" title="Apri menu">&#9776;</button>
+    <div class="header-left brand-lockup">
+      <img src="assets/favicon-32.png" alt="" width="36" height="36">
+      <div>
+        <h1>Bilancio</h1>
+        <span>Famiglia Castaldo</span>
+      </div>
     </div>
     <div class="month-selector">
       <button id="prevMonth" aria-label="Mese precedente">&lt;</button>
       <span id="currentMonth">--</span>
       <button id="nextMonth" aria-label="Mese successivo">&gt;</button>
     </div>
-    <button id="btnLogout" class="btn-logout">Esci</button>
   </header>
 
   <div id="alert-box"></div>
 
-  <main>
-    <section class="dashboard">
-      <div class="card kpi"><span>Cassa calcolata</span><strong id="kpiCassa">&euro; 0,00</strong></div>
-      <div class="card kpi"><span>Differenza</span><strong id="kpiDifferenza">&euro; 0,00</strong></div>
-      <div class="card kpi"><span>Entrate</span><strong id="kpiEntrate">&euro; 0,00</strong></div>
-      <div class="card kpi"><span>Uscite</span><strong id="kpiUscite">&euro; 0,00</strong></div>
-      <div class="card kpi"><span>Salvadanaio</span><strong id="kpiSalvadanaio">&euro; 0,00</strong></div>
-      <div class="card kpi"><span>Attesi</span><strong id="kpiAttesi">&euro; 0,00</strong></div>
-    </section>
+  <main class="app-layout">
+    <aside class="app-sidebar" aria-label="Sezioni">
+      <div class="sidebar-brand">
+        <img src="assets/icon-192.png" alt="" width="46" height="46">
+        <div><strong>Bilancio</strong><span>Famiglia Castaldo</span></div>
+        <button id="btnCloseMenu" class="menu-close" type="button" aria-label="Chiudi menu" title="Chiudi menu">&times;</button>
+      </div>
+      <div class="sidebar-heading">Menu</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-link active" type="button" data-page="overview">Panoramica</button>
+        <button class="sidebar-link" type="button" data-page="new-entry">Nuovo movimento</button>
+        <button class="sidebar-link" type="button" data-page="calculation">Calcolo</button>
+        <button class="sidebar-link" type="button" data-page="reconciliation">Riconciliazione</button>
+        <button class="sidebar-link" type="button" data-page="movements">Movimenti</button>
+        <button class="sidebar-link" type="button" data-page="data">Dati</button>
+      </nav>
+      <div class="sidebar-foot"><button id="btnLogout" class="btn-logout">Esci</button></div>
+    </aside>
+    <button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="Chiudi menu"></button>
 
+    <div class="app-workspace">
+      <section class="app-page active" data-page-view="overview">
+    <section class="dashboard">
+      <div class="card kpi kpi-main"><span>Cassa calcolata</span><strong id="kpiCassa">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-difference"><span>Differenza</span><strong id="kpiDifferenza">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-income"><span>Entrate</span><strong id="kpiEntrate">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-expense"><span>Uscite</span><strong id="kpiUscite">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-savings"><span>Salvadanaio</span><strong id="kpiSalvadanaio">&euro; 0,00</strong></div>
+      <div class="card kpi kpi-pending"><span>Attesi</span><strong id="kpiAttesi">&euro; 0,00</strong></div>
+    </section>
+      </section>
+
+      <section class="app-page" data-page-view="new-entry">
     <section class="input-panel">
-      <div class="form-row">
-        <select id="fTipo">
-          <option value="entrata">Entrata</option>
-          <option value="uscita">Uscita</option>
-          <option value="accantonamento">Accantonamento salvadanaio</option>
-          <option value="prelievo">Prelievo da salvadanaio</option>
-        </select>
-        <input type="text" id="fCat" placeholder="Descrizione libera">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Inserimento rapido</span>
+          <h2>Nuovo movimento</h2>
+        </div>
       </div>
       <div class="form-row">
-        <select id="fMembro">
-          <option value="Famiglia">Famiglia</option>
-          <option value="Arcangelo">Arcangelo</option>
-          <option value="Anna">Anna</option>
-          <option value="Figlio 1">Figlio 1</option>
-          <option value="Figlio 2">Figlio 2</option>
-          <option value="Figlio 3">Figlio 3</option>
-        </select>
-        <input type="number" id="fImporto" min="0.01" step="0.01" placeholder="Importo">
+        <label class="input-field"><span>Tipo</span><select id="fTipo">
+            <option value="entrata">Entrata</option>
+            <option value="uscita">Uscita</option>
+            <option value="accantonamento">Accantonamento salvadanaio</option>
+            <option value="prelievo">Prelievo da salvadanaio</option>
+          </select></label>
+        <label class="input-field input-field-wide"><span>Descrizione</span><input type="text" id="fCat" placeholder="Es. spesa settimanale"></label>
+      </div>
+      <div class="form-row">
+        <label class="input-field"><span>Persona</span><select id="fMembro">
+            <option value="Famiglia">Famiglia</option>
+            <option value="Arcangelo">Arcangelo</option>
+            <option value="Anna">Anna</option>
+            <option value="Figlio 1">Figlio 1</option>
+            <option value="Figlio 2">Figlio 2</option>
+            <option value="Figlio 3">Figlio 3</option>
+          </select></label>
+        <label class="input-field"><span>Importo</span><input type="number" id="fImporto" min="0.01" step="0.01" placeholder="0,00"></label>
       </div>
       <div class="form-options">
         <label><input type="checkbox" id="fRicorrente"> Ricorrente</label>
@@ -79,14 +112,22 @@
       <button id="btnAggiungi" class="btn-primary">Aggiungi movimento</button>
       <button id="btnCopiaRicorrenti" class="btn-secondary secondary-action">Copia ricorrenti dal mese precedente</button>
     </section>
+      </section>
 
+      <section class="app-page" data-page-view="calculation">
     <section class="summary-panel">
-      <div class="summary-grid">
-        <div>
+      <div class="summary-single">
+          <span class="eyebrow">Situazione del mese</span>
           <h2>Calcolo automatico</h2>
           <ul id="calculationList"></ul>
-        </div>
-        <div>
+      </div>
+    </section>
+      </section>
+
+      <section class="app-page" data-page-view="reconciliation">
+    <section class="summary-panel">
+      <div class="summary-single reconciliation-block">
+          <span class="eyebrow">Controllo reale</span>
           <h2>Riconciliazione</h2>
           <p class="helper-text">Conta i soldi reali disponibili e confrontali con quelli calcolati dall'app.</p>
           <div class="cash-check">
@@ -96,12 +137,13 @@
             <div id="cashStatus" class="status-msg"></div>
           </div>
           <div id="reconcileList"></div>
-        </div>
       </div>
     </section>
+      </section>
 
+      <section class="app-page" data-page-view="movements">
     <section class="table-panel desktop-only">
-      <h2>Movimenti</h2>
+      <div class="section-heading"><div><span class="eyebrow">Registro mensile</span><h2>Movimenti</h2></div></div>
       <table id="transTable">
         <thead>
           <tr><th>Tipo</th><th>Descrizione</th><th>Persona</th><th>Importo</th><th>Vis.</th><th>Ric.</th><th>Stato</th><th>Azioni</th></tr>
@@ -111,11 +153,14 @@
     </section>
 
     <section class="mobile-only" id="mobile-list">
-      <h2>Movimenti</h2>
+      <div class="section-heading"><div><span class="eyebrow">Registro mensile</span><h2>Movimenti</h2></div></div>
       <div id="mobile-container"></div>
     </section>
+      </section>
 
+      <section class="app-page" data-page-view="data">
     <section class="rollover-panel">
+      <div class="section-heading"><div><span class="eyebrow">Archivio</span><h2>Dati e backup</h2></div></div>
       <ul id="rolloverList"></ul>
       <div class="import-row">
         <input type="file" id="csvImport" accept=".csv,text/csv">
@@ -123,13 +168,16 @@
       </div>
       <button id="btnExport" class="btn-secondary" style="width:100%">Esporta CSV</button>
     </section>
+      </section>
+    </div>
   </main>
 
   <div class="mobile-spacer"></div>
 
-  <script type="module" src="./modules/ui.js?v=20260618183356"></script>
-  <script type="module" src="./modules/db-manager.js?v=20260618183356"></script>
-  <script type="module" src="./modules/pwa.js?v=20260618183356"></script>
+  <script type="module" src="./modules/ui.js?v=prodpages1"></script>
+  <script type="module" src="./modules/db-manager.js?v=prodpages1"></script>
+  <script type="module" src="./modules/pwa.js?v=prodpages1"></script>
+  <script type="module" src="./modules/navigation.js?v=prodpages1"></script>
 
   <script>
     window.showTab = function(tabName) {
