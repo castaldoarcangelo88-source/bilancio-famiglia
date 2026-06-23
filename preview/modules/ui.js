@@ -85,7 +85,7 @@ function resetTransactionForm() {
   editingTransactionId = null;
   form.tipo.value = "entrata";
   form.cat.value = "";
-  form.membro.value = "Famiglia";
+  form.membro.value = defaultMemberForCurrentUser();
   form.importo.value = "";
   form.ricorrente.checked = false;
   form.reale.checked = true;
@@ -113,7 +113,7 @@ function readTransactionForm() {
   return {
     tipo: form.tipo.value,
     cat,
-    membro: form.membro.value,
+    membro: normalizeMember(form.membro.value),
     importo,
     ricorrente: form.ricorrente.checked,
     reale: form.reale.checked,
@@ -127,12 +127,20 @@ function readTransactionForm() {
   };
 }
 
+function defaultMemberForCurrentUser() {
+  return currentUserEmail === "anna.balsamo84@gmail.com" ? "Anna" : "Arcangelo";
+}
+
+function normalizeMember(member) {
+  return member === "Anna" ? "Anna" : "Arcangelo";
+}
+
 function enterEditMode(transaction) {
   const form = formElements();
   editingTransactionId = transaction.id;
   form.tipo.value = transaction.tipo;
   form.cat.value = transaction.cat || "";
-  form.membro.value = transaction.membro;
+  form.membro.value = normalizeMember(transaction.membro);
   form.importo.value = Number(transaction.importo) || "";
   form.ricorrente.checked = Boolean(transaction.ricorrente);
   form.reale.checked = Boolean(transaction.reale || transaction.confermato);

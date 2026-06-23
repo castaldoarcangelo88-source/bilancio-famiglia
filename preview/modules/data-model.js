@@ -1,4 +1,4 @@
-export const MEMBERS = ["Famiglia", "Arcangelo", "Anna", "Figlio 1", "Figlio 2", "Figlio 3"];
+export const MEMBERS = ["Arcangelo", "Anna"];
 
 export const HOUSE_CATEGORIES = [
   "Mutuo/Affitto",
