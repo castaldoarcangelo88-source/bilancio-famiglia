@@ -9,6 +9,8 @@ window.currentMonth = monthKeyFromDate(new Date());
 let transactions = [];
 let cashChecks = {};
 let currentUserEmail = "";
+let currentUserId = "";
+let editingTransactionId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -18,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
     currentUserEmail = data.session.user?.email || "";
+    currentUserId = data.session.user?.id || "";
 
     setAlert("Caricamento dati...", "info");
     transactions = await loadTransactions();
@@ -56,6 +59,89 @@ function setupPrivateOption() {
   privateCheckbox.checked = false;
   privateCheckbox.disabled = !canUsePrivate;
   privateOption.style.display = canUsePrivate ? "" : "none";
+}
+
+function canUsePrivateTransactions() {
+  return currentUserEmail === "castaldoarcangelo88@gmail.com";
+}
+
+function formElements() {
+  return {
+    tipo: document.getElementById("fTipo"),
+    cat: document.getElementById("fCat"),
+    membro: document.getElementById("fMembro"),
+    importo: document.getElementById("fImporto"),
+    ricorrente: document.getElementById("fRicorrente"),
+    reale: document.getElementById("fReale"),
+    privata: document.getElementById("fPrivata"),
+    submit: document.getElementById("btnAggiungi"),
+    cancel: document.getElementById("btnAnnullaModifica"),
+    notice: document.getElementById("editModeNotice")
+  };
+}
+
+function resetTransactionForm() {
+  const form = formElements();
+  editingTransactionId = null;
+  form.tipo.value = "entrata";
+  form.cat.value = "";
+  form.membro.value = "Famiglia";
+  form.importo.value = "";
+  form.ricorrente.checked = false;
+  form.reale.checked = true;
+  form.privata.checked = false;
+  form.submit.textContent = "Aggiungi movimento";
+  form.cancel.hidden = true;
+  form.notice.hidden = true;
+}
+
+function readTransactionForm() {
+  const form = formElements();
+  const importo = parseFloat(form.importo.value);
+  const cat = form.cat.value.trim();
+
+  if (!cat) {
+    alert("Inserisci una descrizione.");
+    return null;
+  }
+
+  if (!Number.isFinite(importo) || importo <= 0) {
+    alert("Inserisci un importo maggiore di zero.");
+    return null;
+  }
+
+  return {
+    tipo: form.tipo.value,
+    cat,
+    membro: form.membro.value,
+    importo,
+    ricorrente: form.ricorrente.checked,
+    reale: form.reale.checked,
+    confermato: form.reale.checked,
+    ...(canUsePrivateTransactions()
+      ? {
+          visibility: form.privata.checked ? "private" : "shared",
+          owner_id: form.privata.checked ? currentUserId : null
+        }
+      : {})
+  };
+}
+
+function enterEditMode(transaction) {
+  const form = formElements();
+  editingTransactionId = transaction.id;
+  form.tipo.value = transaction.tipo;
+  form.cat.value = transaction.cat || "";
+  form.membro.value = transaction.membro;
+  form.importo.value = Number(transaction.importo) || "";
+  form.ricorrente.checked = Boolean(transaction.ricorrente);
+  form.reale.checked = Boolean(transaction.reale || transaction.confermato);
+  form.privata.checked = canUsePrivateTransactions() && transaction.visibility === "private";
+  form.submit.textContent = "Salva modifica";
+  form.cancel.hidden = false;
+  form.notice.hidden = false;
+  document.querySelector('[data-page="new-entry"]')?.click();
+  form.cat.focus();
 }
 
 function setAlert(message, type = "danger") {
@@ -180,34 +266,35 @@ function setupEvents() {
   }
 
   document.getElementById("btnAggiungi").addEventListener("click", async () => {
-    const tipo = document.getElementById("fTipo").value;
-    const cat = document.getElementById("fCat").value.trim();
-    const membro = document.getElementById("fMembro").value;
-    const importo = parseFloat(document.getElementById("fImporto").value);
-    const ricorrente = document.getElementById("fRicorrente").checked;
-    const reale = document.getElementById("fReale").checked;
-    const privata = currentUserEmail === "castaldoarcangelo88@gmail.com" && document.getElementById("fPrivata").checked;
-
-    if (!cat) {
-      alert("Inserisci una descrizione.");
-      return;
-    }
-
-    if (!Number.isFinite(importo) || importo <= 0) {
-      alert("Inserisci un importo maggiore di zero.");
-      return;
-    }
+    const formData = readTransactionForm();
+    if (!formData) return;
 
     try {
-      const t = createTransaction(window.currentMonth, tipo, cat, membro, importo, ricorrente, reale, privata);
+      if (editingTransactionId) {
+        const updates = { ...formData };
+        await updateTransaction(editingTransactionId, updates);
+        transactions = transactions.map(item => item.id === editingTransactionId ? { ...item, ...updates } : item);
+        resetTransactionForm();
+        render();
+        return;
+      }
+
+      const t = createTransaction(
+        window.currentMonth,
+        formData.tipo,
+        formData.cat,
+        formData.membro,
+        formData.importo,
+        formData.ricorrente,
+        formData.reale,
+        formData.visibility === "private"
+      );
       const saved = await saveTransaction(t);
 
       if (saved) {
         transactions.unshift(saved);
         render();
-        document.getElementById("fCat").value = "";
-        document.getElementById("fImporto").value = "";
-        document.getElementById("fPrivata").checked = false;
+        resetTransactionForm();
       }
     } catch (error) {
       console.error(error);
@@ -215,6 +302,7 @@ function setupEvents() {
     }
   });
 
+  document.getElementById("btnAnnullaModifica").addEventListener("click", resetTransactionForm);
   document.getElementById("prevMonth").onclick = () => shiftMonth(-1);
   document.getElementById("nextMonth").onclick = () => shiftMonth(1);
   document.getElementById("btnLogout").onclick = logout;
@@ -326,6 +414,7 @@ function renderTable(list) {
       <td>${t.ricorrente ? "Si" : "No"}</td>
       <td><span class="badge ${t.confermato ? "real" : "atteso"}">${t.confermato ? "Reale" : "Atteso"}</span></td>
       <td>
+        <button class="btn-sm" onclick="window.editTx('${escapeHTML(t.id)}')">Modifica</button>
         <button class="btn-sm" onclick="window.toggle('${escapeHTML(t.id)}')">${t.confermato ? "Annulla" : "Conferma"}</button>
         <button class="btn-sm" style="color:red" onclick="window.del('${escapeHTML(t.id)}')">Elimina</button>
       </td>
@@ -347,6 +436,7 @@ function renderMobileList(list) {
         <h4>${escapeHTML(t.cat)} <small>(${escapeHTML(t.membro)})</small></h4>
         <p>${movementLabel(t.tipo)} - ${t.visibility === "private" ? "Privata" : "Condivisa"} - ${t.ricorrente ? "Ricorrente" : "Una tantum"} - ${t.confermato ? "Reale" : "Atteso"}</p>
         <div class="m-actions">
+          <button class="m-btn edit" onclick="window.editTx('${escapeHTML(t.id)}')">Modifica</button>
           <button class="m-btn conf" onclick="window.toggle('${escapeHTML(t.id)}')">${t.confermato ? "Annulla" : "Conferma"}</button>
           <button class="m-btn del" onclick="window.del('${escapeHTML(t.id)}')">Elimina</button>
         </div>
@@ -354,6 +444,12 @@ function renderMobileList(list) {
       <div class="m-amount" style="color:${movementColor(t.tipo)}">${movementSign(t.tipo)}${fmt(t.importo)}</div>
     </div>`).join("");
 }
+
+window.editTx = (id) => {
+  const transaction = transactions.find(x => x.id === id);
+  if (!transaction) return;
+  enterEditMode(transaction);
+};
 
 window.toggle = async (id) => {
   const t = transactions.find(x => x.id === id);

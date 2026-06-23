@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "bilancio-preview-";
-const CACHE_NAME = `${CACHE_PREFIX}20260622-logoutfix1`;
+const CACHE_NAME = `${CACHE_PREFIX}20260623-editmov1`;
 const APP_SHELL = [
   "./",
   "./index.html",

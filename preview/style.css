@@ -224,6 +224,7 @@ input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(23, 105, 
 
 .btn-primary,
 .btn-secondary,
+.btn-tertiary,
 .btn-small {
   min-height: 42px;
   border: 0;
@@ -236,8 +237,20 @@ input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(23, 105, 
 .btn-primary:hover { background: #126f4d; }
 .btn-secondary { width: 100%; padding: 10px 14px; background: var(--primary); }
 .btn-secondary:hover { background: #12598f; }
+.btn-tertiary { width: 100%; margin-top: 8px; padding: 10px 14px; border: 1px solid var(--line); background: #fff; color: var(--navy); }
+.btn-tertiary:hover { background: var(--surface-soft); }
 .secondary-action { margin-top: 9px; background: #4c5d6d; }
 .btn-small { padding: 8px 12px; background: var(--primary); }
+.edit-mode-notice {
+  margin-bottom: 10px;
+  padding: 9px 11px;
+  border-left: 4px solid var(--gold);
+  border-radius: 7px;
+  background: #fff6df;
+  color: #74500d;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
 
 .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .summary-block { min-width: 0; padding: 2px 20px 2px 2px; }
@@ -302,6 +315,7 @@ tbody tr:hover { background: #f9fbfc; }
 .m-amount { font-size: 1rem; font-weight: 850; white-space: nowrap; }
 .m-actions { display: flex; gap: 7px; margin-top: 9px; padding-top: 8px; border-top: 1px solid #edf1f4; }
 .m-btn { padding: 6px 9px; border: 0; border-radius: 6px; font-size: 0.7rem; font-weight: 750; cursor: pointer; }
+.m-btn.edit { background: #e8f0fb; color: #174d7c; }
 .m-btn.conf { background: #e2f4ec; color: #0c6a47; }
 .m-btn.del { background: #fbe7e8; color: #a02f35; }
 

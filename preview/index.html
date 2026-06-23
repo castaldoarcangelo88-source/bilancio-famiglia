@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#2563eb">
   <link rel="manifest" href="manifest.webmanifest?v=pwa1">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=1">
-  <link rel="stylesheet" href="style.css?v=logoutfix1">
+  <link rel="stylesheet" href="style.css?v=editmov1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -114,7 +114,9 @@
         <label><input type="checkbox" id="fReale" checked> Reale</label>
         <label><input type="checkbox" id="fPrivata"> Privata</label>
       </div>
+      <div id="editModeNotice" class="edit-mode-notice" hidden>Modifica movimento in corso</div>
       <button id="btnAggiungi" class="btn-primary">Aggiungi movimento</button>
+      <button id="btnAnnullaModifica" class="btn-tertiary" hidden>Annulla modifica</button>
       <button id="btnCopiaRicorrenti" class="btn-secondary secondary-action">Copia ricorrenti dal mese precedente</button>
     </section>
       </section>
@@ -179,11 +181,11 @@
 
   <div class="mobile-spacer"></div>
 
-  <script type="module" src="./modules/ui.js?v=31"></script>
+  <script type="module" src="./modules/ui.js?v=editmov1"></script>
   <script type="module" src="./modules/db-manager.js?v=31"></script>
   <script type="module" src="./modules/pwa.js?v=pwa1"></script>
-  <script type="module" src="./modules/navigation.js?v=love4"></script>
-  <script type="module" src="./modules/daily-message.js?v=love4"></script>
+  <script type="module" src="./modules/navigation.js?v=nav1"></script>
+  <script type="module" src="./modules/daily-message.js?v=love1"></script>
 
   <script>
     window.showTab = function(tabName) {
